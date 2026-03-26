@@ -5,9 +5,9 @@
 const cruiseData = {
     // 成员配置
     members: [
-        { id: 'admin', name: '主编辑', role: 'admin', emoji: '👑' },
-        { id: 'member1', name: '成员1', role: 'member', emoji: '👤' },
-        { id: 'member2', name: '成员2', role: 'member', emoji: '👤' }
+        { id: 'userZ', name: 'Z', role: 'member', emoji: '👤' },
+        { id: 'userW', name: 'W', role: 'member', emoji: '👤' },
+        { id: 'userY', name: 'Y', role: 'member', emoji: '👤' }
     ],
 
     // 航班信息（不同出发地）

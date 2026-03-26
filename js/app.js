@@ -46,21 +46,20 @@ const DisneyCruiseApp = {
             <div class="user-selector-content">
                 <div class="user-selector-header">
                     <div class="magic-stars">✨ ✨ ✨</div>
-                    <h2>选择你的身份</h2>
-                    <p>请选择你是谁，开始使用旅行计划</p>
+                    <h2>你是谁？</h2>
+                    <p>点击下方选择你的身份</p>
                 </div>
                 <div class="user-options">
                     ${cruiseData.members.map(member => `
-                        <div class="user-option ${member.role}" onclick="DisneyCruiseApp.selectUser('${member.id}')">
+                        <div class="user-option" onclick="DisneyCruiseApp.selectUser('${member.id}')">
                             <div class="user-option-emoji">${member.emoji}</div>
                             <div class="user-option-info">
-                                <div class="user-option-name">${member.name}</div>
-                                <div class="user-option-role">${member.role === 'admin' ? '主编辑 · 可编辑所有内容' : '成员 · 可编辑所有内容'}</div>
+                                <div class="user-option-name">我是 ${member.name}</div>
                             </div>
                         </div>
                     `).join('')}
                 </div>
-                <p class="user-selector-hint">💡 提示：所有人都可以编辑行程、预订和记账信息</p>
+                <p class="user-selector-hint">💡 Z / W / Y 三人都可以编辑所有内容</p>
             </div>
         `;
         document.body.appendChild(selector);
