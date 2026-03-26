@@ -241,64 +241,34 @@
     <div class="modal" id="syncModal">
         <div class="modal-content sync-modal-content">
             <div class="modal-header">
-                <h3>☁️ 云端同步设置</h3>
+                <h3>☁️ 云端同步</h3>
                 <button class="modal-close" id="closeSyncModal">×</button>
             </div>
             <div class="modal-body">
                 <!-- 连接状态 -->
                 <div class="sync-connection-status" id="syncConnectionStatus">
-                    <span class="status-dot offline"></span>
-                    <span class="status-text">未连接</span>
+                    <span class="status-dot auto-sync"></span>
+                    <span class="status-text">已开启自动同步</span>
                 </div>
 
-                <!-- 创建新 Gist -->
+                <p class="sync-hint" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; text-align: center;">
+                    数据变更后自动上传，2秒延迟
+                </p>
+
+                <!-- 同步操作 -->
                 <div class="sync-section">
-                    <h4 class="sync-section-title">创建分享链接</h4>
-                    <p class="sync-section-desc">首次使用？创建一个新的云端存储空间</p>
-                    <div class="token-input-group">
-                        <input type="text" class="modal-input" id="githubToken" placeholder="GitHub Token（可选，用于私密存储）">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="isPublicGist" checked>
-                            <span>公开 Gist（无需 Token）</span>
-                        </label>
-                    </div>
-                    <button class="btn-primary btn-full" id="createGistBtn">创建分享链接</button>
-                </div>
-
-                <div class="sync-divider">
-                    <span>或</span>
-                </div>
-
-                <!-- 连接现有 Gist -->
-                <div class="sync-section">
-                    <h4 class="sync-section-title">连接现有链接</h4>
-                    <p class="sync-section-desc">已有分享链接？输入 Gist ID 连接</p>
-                    <input type="text" class="modal-input" id="gistIdInput" placeholder="Gist ID（如：a1b2c3d4e5f6...）">
-                    <input type="text" class="modal-input" id="connectTokenInput" placeholder="GitHub Token（可选，用于上传数据）" style="margin-top: 8px;">
-                    <p class="token-hint" style="font-size: 12px; color: #666; margin: 4px 0 8px 0;">💡 如果你是 Gist 创建者，输入 Token 可启用自动同步</p>
-                    <button class="btn-secondary btn-full" id="connectGistBtn">连接</button>
-                </div>
-
-                <!-- 已连接时的操作 -->
-                <div class="sync-section sync-actions-section" id="syncActionsSection" style="display: none;">
-                    <div class="sync-divider">
-                        <span>同步操作</span>
-                    </div>
                     <div class="sync-action-buttons">
                         <button class="btn-primary" id="syncUpBtn">
-                            <span class="btn-icon">↑</span> 上传到云端
+                            <span class="btn-icon">↑</span> 立即上传
                         </button>
                         <button class="btn-secondary" id="syncDownBtn">
-                            <span class="btn-icon">↓</span> 从云端下载
+                            <span class="btn-icon">↓</span> 下载最新
                         </button>
                     </div>
-                    <button class="btn-danger btn-full" id="disconnectBtn" style="margin-top: 12px;">
-                        断开连接
-                    </button>
-                    <div class="sync-info" id="syncInfo">
-                        <p>Gist ID: <span id="connectedGistId">-</span></p>
-                        <p>上次同步: <span id="lastSyncTime">-</span></p>
-                    </div>
+                </div>
+
+                <div class="sync-info" id="syncInfo" style="margin-top: 20px;">
+                    <p>上次同步: <span id="lastSyncTime">-</span></p>
                 </div>
             </div>
         </div>
@@ -324,7 +294,7 @@
 
     <script src="js/data.js"></script>
     <script src="js/storage.js"></script>
-    <script src="js/gist.js"></script>
+    <script src="js/sync.js"></script>
     <script src="js/tabs.js"></script>
     <script src="js/app.js"></script>
 </body>
