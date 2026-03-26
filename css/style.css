@@ -566,6 +566,62 @@ body {
     font-size: 14px;
 }
 
+.activity-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.activity-edit-btn,
+.activity-delete-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.activity-edit-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.activity-delete-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.day-edit-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+
+.day-edit-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.day-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.itinerary-actions {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+
 /* ========== 待办事项页 ========== */
 .todo-category {
     margin-bottom: 20px;
@@ -781,6 +837,54 @@ body {
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid var(--card-border);
+}
+
+.booking-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--card-border);
+}
+
+.booking-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.booking-edit-btn,
+.booking-delete-btn {
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.booking-edit-btn {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--gold-primary);
+}
+
+.booking-edit-btn:hover {
+    background: rgba(255, 215, 0, 0.3);
+}
+
+.booking-delete-btn {
+    background: rgba(231, 76, 60, 0.2);
+    color: #ff6b6b;
+}
+
+.booking-delete-btn:hover {
+    background: rgba(231, 76, 60, 0.3);
+}
+
+.bookings-actions {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: flex-end;
 }
 
 /* ========== 记账功能页 ========== */
@@ -1173,6 +1277,47 @@ body {
 ::selection {
     background: rgba(255, 215, 0, 0.3);
     color: var(--text-primary);
+}
+
+/* ========== 待办事项多用户状态 ========== */
+.todo-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.todo-user-status {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.user-status {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.user-status.done {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.user-status.pending {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.todo-item.fully-completed {
+    border-left: 3px solid #2ecc71;
+}
+
+.todo-item.fully-completed .todo-text {
+    opacity: 0.7;
 }
 
 /* ========== 用户选择器 ========== */

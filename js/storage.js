@@ -91,6 +91,56 @@ const Storage = {
         return userTodos;
     },
 
+    // 获取所有用户的待办确认状态（用于显示）
+    getAllTodosWithStatus() {
+        const result = {};
+        const members = cruiseData?.members || [];
+
+        // 获取每个用户的待办
+        members.forEach(member => {
+            const key = this.keys.TODOS_PREFIX + member.id;
+            const data = localStorage.getItem(key);
+            if (data) {
+                result[member.id] = JSON.parse(data);
+            } else {
+                // 使用默认数据
+                result[member.id] = JSON.parse(JSON.stringify(cruiseData.defaultTodos));
+            }
+        });
+
+        return result;
+    },
+
+    // 切换当前用户的待办完成状态
+    toggleTodoStatus(category, todoId) {
+        const user = this.getCurrentUser();
+        if (!user) return false;
+
+        const todos = this.getTodos();
+        const todo = todos[category]?.find(t => t.id === todoId);
+
+        if (todo && todo.completed) {
+            // 切换当前用户的状态
+            todo.completed[user.id] = !todo.completed[user.id];
+            this.saveTodos(todos);
+            return true;
+        }
+
+        return false;
+    },
+
+    // 检查待办是否全部完成（三人）
+    isTodoFullyCompleted(todo) {
+        if (!todo.completed || typeof todo.completed !== 'object') return false;
+        return Object.values(todo.completed).every(v => v === true);
+    },
+
+    // 获取待办完成人数
+    getTodoCompletedCount(todo) {
+        if (!todo.completed || typeof todo.completed !== 'object') return 0;
+        return Object.values(todo.completed).filter(v => v === true).length;
+    },
+
     // 保存当前用户的待办清单
     saveTodos(todos) {
         const user = this.getCurrentUser();
@@ -122,7 +172,7 @@ const Storage = {
         return true;
     },
 
-    // 获取预订信息（仅主编辑可编辑）
+    // 获取预订信息（所有成员可编辑）
     getBookings() {
         const data = localStorage.getItem(this.keys.BOOKINGS);
         if (data) {

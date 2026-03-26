@@ -333,41 +333,55 @@ const DisneyCruiseApp = {
 
     // 行程规划
     initItinerary() {
+        this.renderItinerary();
+    },
+
+    renderItinerary() {
         const container = document.getElementById('timeline');
         if (!container) return;
 
         const progress = Storage.getItineraryProgress();
 
-        container.innerHTML = cruiseData.itinerary.map(day => `
-            <div class="timeline-day">
-                <div class="day-header">
-                    <div class="day-badge">D${day.day}</div>
-                    <div class="day-info">
-                        <h3>${day.title} ${day.emoji}</h3>
-                        <p>${day.date} ${day.weekday} · ${day.location}</p>
+        container.innerHTML = `
+            <div class="itinerary-actions" style="margin-bottom: 16px; text-align: right;">
+                <button class="btn-primary" onclick="DisneyCruiseApp.openActivityModal()">+ 添加活动</button>
+            </div>
+            ${cruiseData.itinerary.map((day, dayIdx) => `
+                <div class="timeline-day">
+                    <div class="day-header">
+                        <div class="day-badge">D${day.day}</div>
+                        <div class="day-info">
+                            <h3>${day.title} ${day.emoji}</h3>
+                            <p>${day.date} ${day.weekday} · ${day.location}</p>
+                        </div>
+                        <button class="day-edit-btn" onclick="DisneyCruiseApp.editDay(${dayIdx})">✏️</button>
+                    </div>
+                    <div class="activity-list">
+                        ${day.activities.map((act, idx) => {
+                            const actId = `day${day.day}_act${idx}`;
+                            const isCompleted = progress[actId];
+                            const confirmedBadge = act.confirmed ? '<span class="badge confirmed">✓</span>' : '';
+                            const highlightBadge = act.highlight ? '<span class="badge highlight">✨</span>' : '';
+                            const mustDoBadge = act.mustDo ? '<span class="badge mustdo">必须</span>' : '';
+                            const groupBadge = act.group ? `<span class="badge group">${act.group === 'chongqing' ? '重庆组' : '深圳组'}</span>` : '';
+                            return `
+                                <div class="activity-item ${isCompleted ? 'completed' : ''} ${act.confirmed ? 'confirmed' : ''} ${act.mustDo ? 'must-do' : ''}" data-id="${actId}">
+                                    <div class="activity-badges">${mustDoBadge}${confirmedBadge}${highlightBadge}${groupBadge}</div>
+                                    <div class="activity-time">${act.time}</div>
+                                    <div class="activity-title">${act.title}</div>
+                                    <div class="activity-desc">${act.desc}</div>
+                                    <div class="activity-actions">
+                                        <button class="activity-edit-btn" onclick="DisneyCruiseApp.editActivity(${dayIdx}, ${idx})">✏️</button>
+                                        <button class="activity-delete-btn" onclick="DisneyCruiseApp.deleteActivity(${dayIdx}, ${idx})">🗑️</button>
+                                        <div class="activity-check ${isCompleted ? 'checked' : ''}" onclick="DisneyCruiseApp.toggleActivity('${actId}')"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
-                <div class="activity-list">
-                    ${day.activities.map((act, idx) => {
-                        const actId = `day${day.day}_act${idx}`;
-                        const isCompleted = progress[actId];
-                        const confirmedBadge = act.confirmed ? '<span class="badge confirmed">✓</span>' : '';
-                        const highlightBadge = act.highlight ? '<span class="badge highlight">✨</span>' : '';
-                        const mustDoBadge = act.mustDo ? '<span class="badge mustdo">必须</span>' : '';
-                        const groupBadge = act.group ? `<span class="badge group">${act.group === 'chongqing' ? '重庆组' : '深圳组'}</span>` : '';
-                        return `
-                            <div class="activity-item ${isCompleted ? 'completed' : ''} ${act.confirmed ? 'confirmed' : ''} ${act.mustDo ? 'must-do' : ''}" data-id="${actId}">
-                                <div class="activity-badges">${mustDoBadge}${confirmedBadge}${highlightBadge}${groupBadge}</div>
-                                <div class="activity-time">${act.time}</div>
-                                <div class="activity-title">${act.title}</div>
-                                <div class="activity-desc">${act.desc}</div>
-                                <div class="activity-check ${isCompleted ? 'checked' : ''}" onclick="DisneyCruiseApp.toggleActivity('${actId}')"></div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        `).join('');
+            `).join('')}
+        `;
     },
 
     toggleActivity(actId) {
@@ -384,6 +398,176 @@ const DisneyCruiseApp = {
         }
     },
 
+    openActivityModal(dayIdx = null, actIdx = null) {
+        const isEdit = dayIdx !== null && actIdx !== null;
+        const day = isEdit ? cruiseData.itinerary[dayIdx] : null;
+        const act = isEdit ? day.activities[actIdx] : null;
+
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'activityModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>${isEdit ? '✏️ 编辑活动' : '+ 添加活动'}</h3>
+                    <button class="modal-close" onclick="document.getElementById('activityModal').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    ${!isEdit ? `
+                        <select class="modal-select" id="activityDay">
+                            ${cruiseData.itinerary.map((d, i) => `<option value="${i}">第${d.day}天 - ${d.title}</option>`).join('')}
+                        </select>
+                    ` : ''}
+                    <input type="text" class="modal-input" id="activityTime" placeholder="时间（如：10:00）" value="${act?.time || ''}">
+                    <input type="text" class="modal-input" id="activityTitle" placeholder="活动名称" value="${act?.title || ''}">
+                    <input type="text" class="modal-input" id="activityDesc" placeholder="活动描述" value="${act?.desc || ''}">
+                    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <label class="checkbox-label" style="flex: 1;">
+                            <input type="checkbox" id="activityMustDo" ${act?.mustDo ? 'checked' : ''}>
+                            <span>必须完成</span>
+                        </label>
+                        <label class="checkbox-label" style="flex: 1;">
+                            <input type="checkbox" id="activityHighlight" ${act?.highlight ? 'checked' : ''}>
+                            <span>高亮标记</span>
+                        </label>
+                        <label class="checkbox-label" style="flex: 1;">
+                            <input type="checkbox" id="activityConfirmed" ${act?.confirmed ? 'checked' : ''}>
+                            <span>已确认</span>
+                        </label>
+                    </div>
+                    <select class="modal-select" id="activityGroup">
+                        <option value="">全员参与</option>
+                        <option value="chongqing" ${act?.group === 'chongqing' ? 'selected' : ''}>重庆组</option>
+                        <option value="shenzhen" ${act?.group === 'shenzhen' ? 'selected' : ''}>深圳组</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="document.getElementById('activityModal').remove()">取消</button>
+                    <button class="btn-primary" onclick="DisneyCruiseApp.saveActivity(${dayIdx !== null ? dayIdx : 'null'}, ${actIdx !== null ? actIdx : 'null'})">保存</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    },
+
+    saveActivity(dayIdx, actIdx) {
+        const isEdit = dayIdx !== null && actIdx !== null;
+
+        const time = document.getElementById('activityTime').value.trim();
+        const title = document.getElementById('activityTitle').value.trim();
+        const desc = document.getElementById('activityDesc').value.trim();
+        const mustDo = document.getElementById('activityMustDo').checked;
+        const highlight = document.getElementById('activityHighlight').checked;
+        const confirmed = document.getElementById('activityConfirmed').checked;
+        const group = document.getElementById('activityGroup').value;
+
+        if (!time || !title) {
+            this.showToast('⚠️ 请填写时间和活动名称');
+            return;
+        }
+
+        const newActivity = {
+            time,
+            title,
+            desc,
+            mustDo,
+            highlight,
+            confirmed,
+            group: group || undefined
+        };
+
+        if (isEdit) {
+            // 编辑现有活动
+            cruiseData.itinerary[dayIdx].activities[actIdx] = newActivity;
+            this.showToast('✅ 活动已更新');
+        } else {
+            // 添加新活动
+            const selectedDay = parseInt(document.getElementById('activityDay').value);
+            cruiseData.itinerary[selectedDay].activities.push(newActivity);
+            // 按时间排序
+            cruiseData.itinerary[selectedDay].activities.sort((a, b) => a.time.localeCompare(b.time));
+            this.showToast('✅ 活动已添加');
+        }
+
+        document.getElementById('activityModal').remove();
+        this.renderItinerary();
+    },
+
+    editActivity(dayIdx, actIdx) {
+        this.openActivityModal(dayIdx, actIdx);
+    },
+
+    deleteActivity(dayIdx, actIdx) {
+        if (confirm('确定要删除这个活动吗？')) {
+            cruiseData.itinerary[dayIdx].activities.splice(actIdx, 1);
+            this.showToast('✅ 活动已删除');
+            this.renderItinerary();
+        }
+    },
+
+    editDay(dayIdx) {
+        const day = cruiseData.itinerary[dayIdx];
+
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'dayModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>✏️ 编辑日期信息</h3>
+                    <button class="modal-close" onclick="document.getElementById('dayModal').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="modal-input" id="dayTitle" placeholder="日期标题" value="${day.title}">
+                    <input type="text" class="modal-input" id="dayDate" placeholder="日期（如：6月22日）" value="${day.date}">
+                    <input type="text" class="modal-input" id="dayWeekday" placeholder="星期（如：周一）" value="${day.weekday}">
+                    <input type="text" class="modal-input" id="dayLocation" placeholder="地点" value="${day.location}">
+                    <input type="text" class="modal-input" id="dayEmoji" placeholder="表情符号" value="${day.emoji}">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="document.getElementById('dayModal').remove()">取消</button>
+                    <button class="btn-primary" onclick="DisneyCruiseApp.saveDay(${dayIdx})">保存</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    },
+
+    saveDay(dayIdx) {
+        const title = document.getElementById('dayTitle').value.trim();
+        const date = document.getElementById('dayDate').value.trim();
+        const weekday = document.getElementById('dayWeekday').value.trim();
+        const location = document.getElementById('dayLocation').value.trim();
+        const emoji = document.getElementById('dayEmoji').value.trim();
+
+        if (!title || !date) {
+            this.showToast('⚠️ 请填写标题和日期');
+            return;
+        }
+
+        cruiseData.itinerary[dayIdx] = {
+            ...cruiseData.itinerary[dayIdx],
+            title,
+            date,
+            weekday,
+            location,
+            emoji
+        };
+
+        this.showToast('✅ 日期信息已更新');
+        document.getElementById('dayModal').remove();
+        this.renderItinerary();
+    },
+
     // 待办事项
     initTodo() {
         this.renderTodos();
@@ -394,7 +578,12 @@ const DisneyCruiseApp = {
         const container = document.getElementById('todoContainer');
         if (!container) return;
 
-        const todos = Storage.getTodos();
+        const currentUser = Storage.getCurrentUser();
+        const allTodos = Storage.getAllTodosWithStatus();
+        const members = cruiseData.members;
+
+        // 合并所有用户的待办（以当前用户的数据为基础）
+        const baseTodos = allTodos[currentUser?.id] || cruiseData.defaultTodos;
 
         const categories = {
             before: { title: '行前准备', icon: '📋' },
@@ -409,106 +598,324 @@ const DisneyCruiseApp = {
                     <div class="category-icon ${key}">${cat.icon}</div>
                     <div class="category-title">${cat.title}</div>
                 </div>
-                ${(todos[key] || []).map(todo => `
-                    <div class="todo-item">
-                        <div class="todo-checkbox ${todo.completed ? 'checked' : ''}"
-                             onclick="DisneyCruiseApp.toggleTodo('${key}', '${todo.id}')"></div>
-                        <div class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</div>
-                        <div class="todo-delete" onclick="DisneyCruiseApp.deleteTodo('${key}', '${todo.id}')">🗑️</div>
-                    </div>
-                `).join('')}
+                ${(baseTodos[key] || []).map(todo => {
+                    // 获取每个用户的完成状态
+                    const userStatuses = members.map(member => {
+                        const memberTodos = allTodos[member.id] || {};
+                        const memberCategory = memberTodos[key] || [];
+                        const memberTodo = memberCategory.find(t => t.id === todo.id);
+                        const isCompleted = memberTodo?.completed?.[member.id] || false;
+                        return {
+                            member,
+                            isCompleted,
+                            isCurrentUser: member.id === currentUser?.id
+                        };
+                    });
+
+                    const currentUserCompleted = userStatuses.find(s => s.isCurrentUser)?.isCompleted || false;
+                    const completedCount = userStatuses.filter(s => s.isCompleted).length;
+                    const totalCount = members.length;
+                    const allCompleted = completedCount === totalCount;
+
+                    return `
+                        <div class="todo-item ${allCompleted ? 'fully-completed' : ''}">
+                            <div class="todo-checkbox ${currentUserCompleted ? 'checked' : ''}"
+                                 onclick="DisneyCruiseApp.toggleTodo('${key}', '${todo.id}')">
+                            </div>
+                            <div class="todo-content">
+                                <div class="todo-text ${currentUserCompleted ? 'completed' : ''}">${todo.text}</div>
+                                <div class="todo-user-status">
+                                    ${userStatuses.map(s => `
+                                        <span class="user-status ${s.isCompleted ? 'done' : 'pending'}"
+                                              title="${s.member.name} (${s.member.groupName})">
+                                            ${s.member.emoji} ${s.member.name}
+                                            ${s.isCompleted ? '✓' : '○'}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="todo-delete" onclick="DisneyCruiseApp.deleteTodo('${key}', '${todo.id}')">🗑️</div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
         `).join('');
     },
 
     toggleTodo(category, id) {
-        const todos = Storage.getTodos();
-        const todo = todos[category].find(t => t.id === id);
-        if (todo) {
-            todo.completed = !todo.completed;
-            Storage.saveTodos(todos);
+        if (Storage.toggleTodoStatus(category, id)) {
             this.renderTodos();
             this.updateTodoProgress();
         }
     },
 
     deleteTodo(category, id) {
-        const todos = Storage.getTodos();
-        todos[category] = todos[category].filter(t => t.id !== id);
-        Storage.saveTodos(todos);
+        // 删除所有用户数据中的这条待办
+        const members = cruiseData.members;
+        members.forEach(member => {
+            const key = Storage.keys.TODOS_PREFIX + member.id;
+            const data = localStorage.getItem(key);
+            if (data) {
+                const todos = JSON.parse(data);
+                if (todos[category]) {
+                    todos[category] = todos[category].filter(t => t.id !== id);
+                    localStorage.setItem(key, JSON.stringify(todos));
+                }
+            }
+        });
         this.renderTodos();
         this.updateTodoProgress();
     },
 
     addTodo(category, text) {
-        const todos = Storage.getTodos();
+        const members = cruiseData.members;
+        const newId = Date.now().toString();
         const newTodo = {
-            id: Date.now().toString(),
+            id: newId,
             text: text,
-            completed: false
+            completed: { userZ: false, userW: false, userY: false }
         };
-        todos[category].push(newTodo);
-        Storage.saveTodos(todos);
+
+        // 为所有用户添加这条待办
+        members.forEach(member => {
+            const key = Storage.keys.TODOS_PREFIX + member.id;
+            const data = localStorage.getItem(key);
+            let todos;
+            if (data) {
+                todos = JSON.parse(data);
+            } else {
+                todos = JSON.parse(JSON.stringify(cruiseData.defaultTodos));
+            }
+            todos[category].push(newTodo);
+            localStorage.setItem(key, JSON.stringify(todos));
+        });
+
         this.renderTodos();
         this.updateTodoProgress();
     },
 
     updateTodoProgress() {
-        const todos = Storage.getTodos();
-        let total = 0;
-        let completed = 0;
+        const allTodos = Storage.getAllTodosWithStatus();
+        const members = cruiseData.members;
 
-        Object.values(todos).forEach(cat => {
-            total += cat.length;
-            completed += cat.filter(t => t.completed).length;
+        let totalItems = 0;
+        let totalCompleted = 0;
+
+        // 以第一个用户的待办为基准统计
+        const baseUserId = members[0]?.id;
+        const baseTodos = allTodos[baseUserId] || {};
+
+        Object.values(baseTodos).forEach(category => {
+            category.forEach(todo => {
+                totalItems++;
+                // 检查是否三人都完成
+                const allDone = members.every(m => {
+                    const mTodos = allTodos[m.id] || {};
+                    const cat = Object.keys(baseTodos).find(k =>
+                        (baseTodos[k] || []).some(t => t.id === todo.id)
+                    );
+                    if (!cat) return false;
+                    const mTodo = (mTodos[cat] || []).find(t => t.id === todo.id);
+                    return mTodo?.completed?.[m.id] || false;
+                });
+                if (allDone) totalCompleted++;
+            });
         });
 
-        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const percentage = totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100) : 0;
 
         const progressFill = document.getElementById('todoProgress');
         const progressText = document.getElementById('progressText');
 
         if (progressFill) progressFill.style.width = `${percentage}%`;
-        if (progressText) progressText.textContent = `${percentage}% 完成 (${completed}/${total})`;
+        if (progressText) progressText.textContent = `${percentage}% 完成 (${totalCompleted}/${totalItems})`;
     },
 
     // 预订管理
     initBookings() {
+        this.renderBookings();
+    },
+
+    renderBookings() {
         const container = document.getElementById('bookingsContainer');
         if (!container) return;
 
         const bookings = Storage.getBookings();
+        const currentUser = Storage.getCurrentUser();
 
-        container.innerHTML = bookings.map(booking => `
-            <div class="booking-card ${booking.type}">
-                <div class="booking-header">
-                    <div class="booking-type">
-                        <div class="booking-icon ${booking.type}">${booking.icon}</div>
-                        <div class="booking-type-name">${booking.typeName}</div>
-                    </div>
-                    <div class="booking-status ${booking.status}">
-                        ${booking.status === 'confirmed' ? '已确认' : '待定'}
-                    </div>
-                </div>
-                <div class="booking-details">
-                    <div class="booking-detail">
-                        <span class="booking-detail-label">项目</span>
-                        <span class="booking-detail-value">${booking.itemName}</span>
-                    </div>
-                    ${booking.details.map(d => `
-                        <div class="booking-detail">
-                            <span class="booking-detail-label">${d.label}</span>
-                            <span class="booking-detail-value">${d.value}</span>
-                        </div>
-                    `).join('')}
-                    <div class="booking-detail">
-                        <span class="booking-detail-label">订单号</span>
-                        <span class="booking-detail-value">${booking.orderNumber}</span>
-                    </div>
-                </div>
-                <div class="booking-price">¥${booking.price.toLocaleString()}</div>
+        container.innerHTML = `
+            <div class="bookings-actions">
+                <button class="btn-primary" onclick="DisneyCruiseApp.openBookingModal()">+ 添加预订</button>
             </div>
-        `).join('');
+            ${bookings.map((booking, index) => `
+                <div class="booking-card ${booking.type}">
+                    <div class="booking-header">
+                        <div class="booking-type">
+                            <div class="booking-icon ${booking.type}">${booking.icon}</div>
+                            <div class="booking-type-name">${booking.typeName}</div>
+                        </div>
+                        <div class="booking-status ${booking.status}">
+                            ${booking.status === 'confirmed' ? '已确认' : '待定'}
+                        </div>
+                    </div>
+                    <div class="booking-details">
+                        <div class="booking-detail">
+                            <span class="booking-detail-label">项目</span>
+                            <span class="booking-detail-value">${booking.itemName}</span>
+                        </div>
+                        ${booking.details.map(d => `
+                            <div class="booking-detail">
+                                <span class="booking-detail-label">${d.label}</span>
+                                <span class="booking-detail-value">${d.value}</span>
+                            </div>
+                        `).join('')}
+                        <div class="booking-detail">
+                            <span class="booking-detail-label">订单号</span>
+                            <span class="booking-detail-value">${booking.orderNumber}</span>
+                        </div>
+                    </div>
+                    <div class="booking-footer">
+                        <div class="booking-price">¥${booking.price.toLocaleString()}</div>
+                        <div class="booking-actions">
+                            <button class="booking-edit-btn" onclick="DisneyCruiseApp.editBooking(${index})">✏️ 编辑</button>
+                            <button class="booking-delete-btn" onclick="DisneyCruiseApp.deleteBooking(${index})">🗑️ 删除</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        `;
+    },
+
+    openBookingModal(bookingIndex = null) {
+        const bookings = Storage.getBookings();
+        const booking = bookingIndex !== null ? bookings[bookingIndex] : null;
+
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'bookingModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>${booking ? '✏️ 编辑预订' : '+ 添加预订'}</h3>
+                    <button class="modal-close" onclick="document.getElementById('bookingModal').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <select class="modal-select" id="bookingType">
+                        <option value="cruise" ${booking?.type === 'cruise' ? 'selected' : ''}>🚢 邮轮</option>
+                        <option value="flight" ${booking?.type === 'flight' ? 'selected' : ''}>✈️ 机票</option>
+                        <option value="hotel" ${booking?.type === 'hotel' ? 'selected' : ''}>🏨 酒店</option>
+                        <option value="tour" ${booking?.type === 'tour' ? 'selected' : ''}>🎢 门票</option>
+                        <option value="other" ${booking?.type === 'other' ? 'selected' : ''}>📦 其他</option>
+                    </select>
+                    <input type="text" class="modal-input" id="bookingItemName" placeholder="项目名称"
+                           value="${booking?.itemName || ''}">
+                    <input type="number" class="modal-input" id="bookingPrice" placeholder="价格（元）"
+                           value="${booking?.price || ''}">
+                    <input type="text" class="modal-input" id="bookingOrderNumber" placeholder="订单号"
+                           value="${booking?.orderNumber || ''}">
+                    <select class="modal-select" id="bookingStatus">
+                        <option value="confirmed" ${booking?.status === 'confirmed' ? 'selected' : ''}>已确认</option>
+                        <option value="pending" ${booking?.status === 'pending' ? 'selected' : ''}>待定</option>
+                    </select>
+                    <textarea class="modal-textarea" id="bookingDetails" placeholder="详细信息（每行一个，格式：标签: 值）">${booking?.details?.map(d => `${d.label}: ${d.value}`).join('\n') || ''}</textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="document.getElementById('bookingModal').remove()">取消</button>
+                    <button class="btn-primary" onclick="DisneyCruiseApp.saveBooking(${bookingIndex !== null ? bookingIndex : 'null'})">保存</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    },
+
+    saveBooking(bookingIndex) {
+        const type = document.getElementById('bookingType').value;
+        const itemName = document.getElementById('bookingItemName').value.trim();
+        const price = parseFloat(document.getElementById('bookingPrice').value);
+        const orderNumber = document.getElementById('bookingOrderNumber').value.trim();
+        const status = document.getElementById('bookingStatus').value;
+        const detailsText = document.getElementById('bookingDetails').value.trim();
+
+        if (!itemName || !price) {
+            this.showToast('⚠️ 请填写项目名称和价格');
+            return;
+        }
+
+        // 解析详细信息
+        const details = detailsText.split('\n').filter(line => line.trim()).map(line => {
+            const [label, ...valueParts] = line.split(':');
+            return {
+                label: label.trim(),
+                value: valueParts.join(':').trim()
+            };
+        });
+
+        // 类型图标映射
+        const icons = {
+            cruise: '🚢',
+            flight: '✈️',
+            hotel: '🏨',
+            tour: '🎢',
+            other: '📦'
+        };
+
+        // 类型名称映射
+        const typeNames = {
+            cruise: '邮轮',
+            flight: '机票',
+            hotel: '酒店',
+            tour: '门票',
+            other: '其他'
+        };
+
+        const newBooking = {
+            id: bookingIndex !== null ? undefined : Date.now().toString(),
+            type,
+            typeName: typeNames[type],
+            icon: icons[type],
+            itemName,
+            details,
+            price,
+            status,
+            orderNumber
+        };
+
+        const bookings = Storage.getBookings();
+
+        if (bookingIndex !== null) {
+            // 编辑现有预订
+            newBooking.id = bookings[bookingIndex].id;
+            bookings[bookingIndex] = newBooking;
+            this.showToast('✅ 预订已更新');
+        } else {
+            // 添加新预订
+            newBooking.id = 'bk' + Date.now();
+            bookings.push(newBooking);
+            this.showToast('✅ 预订已添加');
+        }
+
+        Storage.saveBookings(bookings);
+        document.getElementById('bookingModal').remove();
+        this.renderBookings();
+    },
+
+    editBooking(index) {
+        this.openBookingModal(index);
+    },
+
+    deleteBooking(index) {
+        if (confirm('确定要删除这条预订信息吗？')) {
+            const bookings = Storage.getBookings();
+            bookings.splice(index, 1);
+            Storage.saveBookings(bookings);
+            this.showToast('✅ 预订已删除');
+            this.renderBookings();
+        }
     },
 
     // 记账功能

@@ -5,9 +5,9 @@
 const cruiseData = {
     // 成员配置
     members: [
-        { id: 'userZ', name: 'Z', role: 'member', emoji: '👤' },
-        { id: 'userW', name: 'W', role: 'member', emoji: '👤' },
-        { id: 'userY', name: 'Y', role: 'member', emoji: '👤' }
+        { id: 'userZ', name: 'Z', role: 'member', emoji: '👤', group: 'chongqing', groupName: '重庆' },
+        { id: 'userW', name: 'W', role: 'member', emoji: '👤', group: 'shenzhen', groupName: '深圳' },
+        { id: 'userY', name: 'Y', role: 'member', emoji: '👤', group: 'chongqing', groupName: '重庆' }
     ],
 
     // 航班信息（不同出发地）
@@ -132,19 +132,20 @@ const cruiseData = {
             day: 5,
             date: "6月22日",
             weekday: "周一",
-            title: "离船日 + 环球影城",
-            location: "新加坡·圣淘沙",
+            title: "离船日 + 圣淘沙",
+            location: "新加坡·圣淘沙岛",
             emoji: "🎢",
             activities: [
                 { time: "07:00", title: "最后早餐", desc: "客房服务或Enchanted Sword" },
                 { time: "08:30", title: "礼宾快速离船", desc: "优先下船，避开人群", highlight: true },
-                { time: "10:00", title: "前往圣淘沙", desc: "打车或缆车前往圣淘沙岛", highlight: true },
-                { time: "10:30", title: "抵达新加坡环球影城", desc: "开启魔法之旅！", highlight: true },
-                { time: "11:00", title: "🧙 哈利波特魔法世界", desc: "霍格沃茨城堡、禁忌之旅、黄油啤酒", mustDo: true, highlight: true },
-                { time: "13:00", title: "午餐 @ 三把扫帚酒吧", desc: "哈利波特主题餐厅，品尝英式美食" },
-                { time: "14:30", title: "奥利凡德魔杖店", desc: "魔杖选择巫师体验", highlight: true },
-                { time: "15:30", title: "其他园区游玩", desc: "变形金刚、侏罗纪公园、木乃伊复仇记" },
-                { time: "18:00", title: "离开环球影城", desc: "结束魔法之旅" },
+                { time: "09:30", title: "前往圣淘沙岛", desc: "打车或缆车前往圣淘沙", highlight: true },
+                { time: "10:00", title: "抵达新加坡环球影城", desc: "开启电影之旅！", highlight: true },
+                { time: "10:30", title: "🎬 环球影城游玩", desc: "变形金刚、侏罗纪公园、木乃伊复仇记等", mustDo: true, highlight: true },
+                { time: "13:00", title: "午餐 @ 环球影城", desc: "园区内餐厅" },
+                { time: "15:00", title: "前往哈利波特幻境", desc: "位于圣淘沙岛的另一区域（注：非环球影城内）", highlight: true },
+                { time: "15:30", title: "🧙 哈利波特：幻境", desc: "沉浸式魔法体验，魔咒互动、魔法生物合影", mustDo: true, highlight: true },
+                { time: "17:00", title: "🦉 魔法商店购物", desc: "购买魔杖、魔法袍等周边" },
+                { time: "18:00", title: "离开圣淘沙", desc: "结束魔法之旅" },
                 { time: "18:30", title: "前往樟宜机场", desc: "打车约30分钟，建议提前2-3小时到达", mustDo: true, highlight: true },
                 { time: "20:05", title: "✈️ 返程航班（重庆）", desc: "2人：樟宜T3 → 江北机场，次日01:15抵达", mustDo: true, confirmed: true, highlight: true },
                 { time: "20:45", title: "✈️ 返程航班（深圳）", desc: "1人：樟宜T3 → 宝安机场，次日01:00抵达", mustDo: true, confirmed: true, highlight: true }
@@ -152,41 +153,41 @@ const cruiseData = {
         }
     ],
 
-    // 默认待办清单
+    // 默认待办清单（支持多用户确认）
     defaultTodos: {
         before: [
-            { id: 'b1', text: '检查护照有效期（6个月以上）', completed: false },
-            { id: 'b2', text: '申请新加坡签证/过境签', completed: false },
-            { id: 'b3', text: '预订往返新加坡机票', completed: false },
-            { id: 'b4', text: '购买旅行保险', completed: false },
-            { id: 'b5', text: '下载迪士尼邮轮App并完成Online Check-in', completed: false },
-            { id: 'b6', text: '预订Palo Steakhouse成人餐厅', completed: false },
-            { id: 'b7', text: '预约水疗SPA时间', completed: false },
-            { id: 'b8', text: '准备正装晚宴服装', completed: false },
-            { id: 'b9', text: '兑换新币现金', completed: false },
-            { id: 'b10', text: '准备防晒用品和泳衣', completed: false }
+            { id: 'b1', text: '检查护照有效期（6个月以上）', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b2', text: '申请新加坡签证/过境签', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b3', text: '预订往返新加坡机票', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b4', text: '购买旅行保险', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b5', text: '下载迪士尼邮轮App并完成Online Check-in', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b6', text: '预订Palo Steakhouse成人餐厅', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b7', text: '预约水疗SPA时间', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b8', text: '准备正装晚宴服装', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b9', text: '兑换新币现金', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'b10', text: '准备防晒用品和泳衣', completed: { userZ: false, userW: false, userY: false } }
         ],
         boarding: [
-            { id: 'bd1', text: '提前3小时到达邮轮中心', completed: false },
-            { id: 'bd2', text: '携带护照和邮轮预订单', completed: false },
-            { id: 'bd3', text: '行李托运（可选）', completed: false },
-            { id: 'bd4', text: '礼宾休息室登记', completed: false }
+            { id: 'bd1', text: '提前3小时到达邮轮中心', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'bd2', text: '携带护照和邮轮预订单', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'bd3', text: '行李托运（可选）', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'bd4', text: '礼宾休息室登记', completed: { userZ: false, userW: false, userY: false } }
         ],
         onboard: [
-            { id: 'o1', text: '参加安全演习', completed: false },
-            { id: 'o2', text: '下载船上WiFi（礼宾房免费）', completed: false },
-            { id: 'o3', text: '预约角色见面会', completed: false },
-            { id: 'o4', text: '探索邮轮7大主题区', completed: false },
-            { id: 'o5', text: '享受礼宾专属甲板', completed: false },
-            { id: 'o6', text: '体验AquaMouse水上过山车', completed: false },
-            { id: 'o7', text: '观看百老汇演出', completed: false },
-            { id: 'o8', text: '购买Photo Unlimited Package', completed: false }
+            { id: 'o1', text: '参加安全演习', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'o2', text: '下载船上WiFi（礼宾房免费）', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'o3', text: '预约角色见面会', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'o4', text: '探索邮轮7大主题区', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'o5', text: '享受礼宾专属甲板', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'o6', text: '体验AquaMouse水上过山车', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'o7', text: '观看百老汇演出', completed: { userZ: false, userW: false, userY: false } },
+            { id: 'o8', text: '购买Photo Unlimited Package', completed: { userZ: false, userW: false, userY: false } }
         ],
         shore: [
-            { id: 's1', text: 'Day 5：离船前往环球影城', completed: false },
-            { id: 's2', text: 'Day 5：哈利波特魔法世界', completed: false },
-            { id: 's3', text: 'Day 5：三把扫帚酒吧午餐', completed: false },
-            { id: 's4', text: 'Day 5：奥利凡德魔杖店', completed: false }
+            { id: 's1', text: 'Day 5：离船前往环球影城', completed: { userZ: false, userW: false, userY: false } },
+            { id: 's2', text: 'Day 5：哈利波特魔法世界', completed: { userZ: false, userW: false, userY: false } },
+            { id: 's3', text: 'Day 5：三把扫帚酒吧午餐', completed: { userZ: false, userW: false, userY: false } },
+            { id: 's4', text: 'Day 5：奥利凡德魔杖店', completed: { userZ: false, userW: false, userY: false } }
         ]
     },
 
