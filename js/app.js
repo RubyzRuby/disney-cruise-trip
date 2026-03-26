@@ -5,13 +5,29 @@
 const DisneyCruiseApp = {
     // 初始化
     init() {
-        // 首先检查并初始化用户
-        if (!this.initUser()) {
-            return; // 等待用户选择
+        // 初始化基础UI（这些不依赖用户登录）
+        this.initStars();
+        this.initEnhancedStars();
+        this.initCountdown();
+
+        // 初始化标签切换器（始终需要）
+        if (typeof TabManager !== 'undefined') {
+            TabManager.init();
         }
 
-        this.initStars();
-        this.initCountdown();
+        // 检查并初始化用户
+        if (!this.initUser()) {
+            return; // 等待用户选择，后续初始化在selectUser中完成
+        }
+
+        // 用户已登录，初始化功能模块
+        this.initUserFeatures();
+
+        console.log('🚢 迪士尼邮轮App已启动！当前用户:', Storage.getCurrentUser()?.name);
+    },
+
+    // 初始化用户相关功能
+    initUserFeatures() {
         this.initItinerary();
         this.initTodo();
         this.initBookings();
@@ -19,9 +35,89 @@ const DisneyCruiseApp = {
         this.initSOS();
         this.initModals();
         this.initExportFeature();
-        this.initEnhancedStars();
+        this.initSettings();
+        this.initSyncModal();
+    },
 
-        console.log('🚢 迪士尼邮轮App已启动！当前用户:', Storage.getCurrentUser()?.name);
+    // 初始化同步弹窗事件
+    initSyncModal() {
+        // 关闭按钮
+        const closeBtn = document.getElementById('closeSyncModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeSyncModal());
+        }
+
+        // 创建 Gist 按钮
+        const createBtn = document.getElementById('createGistBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', () => this.createNewGist());
+        }
+
+        // 连接 Gist 按钮
+        const connectBtn = document.getElementById('connectGistBtn');
+        if (connectBtn) {
+            connectBtn.addEventListener('click', () => this.connectToGist());
+        }
+
+        // 上传按钮
+        const syncUpBtn = document.getElementById('syncUpBtn');
+        if (syncUpBtn) {
+            syncUpBtn.addEventListener('click', () => this.syncUp());
+        }
+
+        // 下载按钮
+        const syncDownBtn = document.getElementById('syncDownBtn');
+        if (syncDownBtn) {
+            syncDownBtn.addEventListener('click', () => this.syncDown());
+        }
+
+        // 断开连接按钮
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        if (disconnectBtn) {
+            disconnectBtn.addEventListener('click', () => this.disconnectGist());
+        }
+
+        // 点击背景关闭
+        const modal = document.getElementById('syncModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) this.closeSyncModal();
+            });
+        }
+
+        // 导入弹窗事件
+        const closeImportBtn = document.getElementById('closeImportModal');
+        const cancelImportBtn = document.getElementById('cancelImport');
+        const confirmImportBtn = document.getElementById('confirmImport');
+
+        if (closeImportBtn) {
+            closeImportBtn.addEventListener('click', () => this.closeImportModal());
+        }
+        if (cancelImportBtn) {
+            cancelImportBtn.addEventListener('click', () => this.closeImportModal());
+        }
+        if (confirmImportBtn) {
+            confirmImportBtn.addEventListener('click', () => this.importData());
+        }
+
+        // 点击背景关闭导入弹窗
+        const importModal = document.getElementById('importModal');
+        if (importModal) {
+            importModal.addEventListener('click', (e) => {
+                if (e.target === importModal) this.closeImportModal();
+            });
+        }
+
+        // 公开 Gist 复选框控制 Token 输入
+        const isPublicCheckbox = document.getElementById('isPublicGist');
+        const tokenInput = document.getElementById('githubToken');
+        if (isPublicCheckbox && tokenInput) {
+            isPublicCheckbox.addEventListener('change', (e) => {
+                tokenInput.style.display = e.target.checked ? 'none' : 'block';
+            });
+            // 初始状态
+            tokenInput.style.display = isPublicCheckbox.checked ? 'none' : 'block';
+        }
     },
 
     // 初始化用户选择
@@ -75,9 +171,10 @@ const DisneyCruiseApp = {
                 setTimeout(() => selector.remove(), 300);
             }
 
-            // 延迟初始化主应用
+            // 显示当前用户并初始化功能
+            this.showCurrentUser();
             setTimeout(() => {
-                this.init();
+                this.initUserFeatures();
             }, 300);
         }
     },
@@ -750,6 +847,309 @@ const DisneyCruiseApp = {
             textarea.select();
             document.execCommand('copy');
             this.showToast('📋 已复制到剪贴板！');
+        }
+    },
+
+    // ========================================
+    // 设置与同步功能
+    // ========================================
+
+    // 初始化设置页
+    initSettings() {
+        // 打开同步弹窗
+        const openSyncBtn = document.getElementById('openSyncBtn');
+        if (openSyncBtn) {
+            openSyncBtn.addEventListener('click', () => this.openSyncModal());
+        }
+
+        // 导出数据按钮
+        const exportDataBtn = document.getElementById('exportDataBtn');
+        if (exportDataBtn) {
+            exportDataBtn.addEventListener('click', () => this.exportAllData());
+        }
+
+        // 导入数据按钮
+        const importDataBtn = document.getElementById('importDataBtn');
+        if (importDataBtn) {
+            importDataBtn.addEventListener('click', () => this.openImportModal());
+        }
+
+        // 清除数据按钮
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        if (clearDataBtn) {
+            clearDataBtn.addEventListener('click', () => this.clearAllData());
+        }
+
+        // 更新同步状态显示
+        this.updateSyncStatus();
+    },
+
+    // 更新同步状态显示
+    updateSyncStatus() {
+        const statusEl = document.getElementById('syncStatus');
+        if (!statusEl) return;
+
+        const config = GistSync.getConfig();
+        const lastSync = GistSync.getLastSync();
+
+        if (config.gistId) {
+            const timeText = lastSync ?
+                `上次同步: ${lastSync.toLocaleString('zh-CN')}` :
+                '已连接，等待首次同步';
+            statusEl.innerHTML = `
+                <div class="sync-status-icon">☁️</div>
+                <div class="sync-status-text">
+                    <p class="sync-status-main">已连接</p>
+                    <p class="sync-status-sub">${timeText}</p>
+                </div>
+            `;
+        } else {
+            statusEl.innerHTML = `
+                <div class="sync-status-icon">📵</div>
+                <div class="sync-status-text">
+                    <p class="sync-status-main">未连接</p>
+                    <p class="sync-status-sub">数据仅存储在本地</p>
+                </div>
+            `;
+        }
+    },
+
+    // 打开同步弹窗
+    openSyncModal() {
+        const modal = document.getElementById('syncModal');
+        if (modal) {
+            modal.classList.add('active');
+            this.updateSyncModalUI();
+        }
+    },
+
+    // 关闭同步弹窗
+    closeSyncModal() {
+        const modal = document.getElementById('syncModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    },
+
+    // 更新同步弹窗UI
+    updateSyncModalUI() {
+        const config = GistSync.getConfig();
+        const lastSync = GistSync.getLastSync();
+        const isConnected = GistSync.isConnected();
+
+        // 更新连接状态
+        const statusEl = document.getElementById('syncConnectionStatus');
+        if (statusEl) {
+            const dot = statusEl.querySelector('.status-dot');
+            const text = statusEl.querySelector('.status-text');
+            if (isConnected) {
+                dot.classList.remove('offline');
+                text.textContent = '已连接';
+            } else {
+                dot.classList.add('offline');
+                text.textContent = '未连接';
+            }
+        }
+
+        // 显示/隐藏操作区域
+        const actionsSection = document.getElementById('syncActionsSection');
+        if (actionsSection) {
+            actionsSection.style.display = isConnected ? 'block' : 'none';
+        }
+
+        // 更新已连接信息
+        if (isConnected) {
+            const gistIdEl = document.getElementById('connectedGistId');
+            const lastSyncEl = document.getElementById('lastSyncTime');
+            if (gistIdEl) gistIdEl.textContent = config.gistId.substring(0, 12) + '...';
+            if (lastSyncEl) {
+                lastSyncEl.textContent = lastSync ?
+                    lastSync.toLocaleString('zh-CN') : '从未';
+            }
+        }
+    },
+
+    // 创建新的 Gist
+    async createNewGist() {
+        const isPublic = document.getElementById('isPublicGist')?.checked ?? true;
+        const token = document.getElementById('githubToken')?.value || null;
+
+        this.showToast('⏳ 正在创建分享链接...');
+
+        const data = Storage.exportAllData();
+        const result = await GistSync.createGist(data, token, isPublic);
+
+        if (result.success) {
+            // 保存配置
+            GistSync.saveConfig({
+                gistId: result.gistId,
+                token: token,
+                autoSync: true
+            });
+            GistSync.saveLastSync();
+
+            this.showToast('✅ 分享链接创建成功！');
+
+            // 显示 Gist ID 供复制
+            setTimeout(() => {
+                alert(`分享链接已创建！\n\nGist ID: ${result.gistId}\n\n请保存此 ID，其他人可以用它连接到你的数据。\n\n查看链接: ${result.htmlUrl}`);
+            }, 300);
+
+            this.updateSyncModalUI();
+            this.updateSyncStatus();
+        } else {
+            this.showToast(`❌ 创建失败: ${result.error}`);
+        }
+    },
+
+    // 连接到现有 Gist
+    async connectToGist() {
+        const gistId = document.getElementById('gistIdInput')?.value.trim();
+        if (!gistId) {
+            this.showToast('⚠️ 请输入 Gist ID');
+            return;
+        }
+
+        this.showToast('⏳ 正在连接...');
+
+        const result = await GistSync.fetchGist(gistId);
+
+        if (result.success) {
+            // 导入数据
+            Storage.importAllData(result.data);
+
+            // 保存配置
+            GistSync.saveConfig({
+                gistId: gistId,
+                token: null,
+                autoSync: true
+            });
+            GistSync.saveLastSync();
+
+            this.showToast('✅ 连接成功！数据已同步');
+
+            // 刷新页面数据
+            this.initUserFeatures();
+            this.updateSyncModalUI();
+            this.updateSyncStatus();
+        } else {
+            this.showToast(`❌ 连接失败: ${result.error}`);
+        }
+    },
+
+    // 上传数据到云端
+    async syncUp() {
+        this.showToast('⏳ 正在上传...');
+
+        const result = await GistSync.syncUp();
+
+        if (result.success) {
+            this.showToast('✅ 上传成功！');
+            this.updateSyncModalUI();
+            this.updateSyncStatus();
+        } else {
+            this.showToast(`❌ 上传失败: ${result.error}`);
+        }
+    },
+
+    // 从云端下载数据
+    async syncDown() {
+        this.showToast('⏳ 正在下载...');
+
+        const result = await GistSync.syncDown();
+
+        if (result.success) {
+            this.showToast('✅ 下载成功！');
+            this.initUserFeatures();
+            this.updateSyncModalUI();
+            this.updateSyncStatus();
+        } else {
+            this.showToast(`❌ 下载失败: ${result.error}`);
+        }
+    },
+
+    // 断开连接
+    disconnectGist() {
+        if (confirm('确定要断开云端同步吗？本地数据将保留。')) {
+            GistSync.disconnect();
+            this.showToast('✅ 已断开连接');
+            this.updateSyncModalUI();
+            this.updateSyncStatus();
+        }
+    },
+
+    // 导出所有数据
+    exportAllData() {
+        const data = Storage.exportAllData();
+        const jsonStr = JSON.stringify(data, null, 2);
+
+        // 创建下载
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `disney-cruise-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.showToast('✅ 数据已导出！');
+    },
+
+    // 打开导入弹窗
+    openImportModal() {
+        const modal = document.getElementById('importModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.getElementById('importDataText').value = '';
+        }
+    },
+
+    // 关闭导入弹窗
+    closeImportModal() {
+        const modal = document.getElementById('importModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    },
+
+    // 导入数据
+    importData() {
+        const textarea = document.getElementById('importDataText');
+        if (!textarea) return;
+
+        const jsonStr = textarea.value.trim();
+        if (!jsonStr) {
+            this.showToast('⚠️ 请输入数据');
+            return;
+        }
+
+        try {
+            const data = JSON.parse(jsonStr);
+            const success = Storage.importAllData(data);
+
+            if (success) {
+                this.showToast('✅ 数据导入成功！');
+                this.closeImportModal();
+                this.initUserFeatures();
+            } else {
+                this.showToast('❌ 数据导入失败');
+            }
+        } catch (e) {
+            this.showToast('❌ 无效的 JSON 数据');
+        }
+    },
+
+    // 清除所有数据
+    clearAllData() {
+        if (confirm('⚠️ 警告：这将清除所有本地数据！\n\n此操作不可恢复，确定要继续吗？')) {
+            if (confirm('再次确认：真的要清除所有数据吗？')) {
+                Storage.clearAll();
+                GistSync.disconnect();
+                this.showToast('✅ 所有数据已清除');
+                location.reload();
+            }
         }
     }
 };

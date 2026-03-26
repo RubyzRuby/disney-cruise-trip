@@ -202,5 +202,81 @@ const Storage = {
             console.error('导入数据失败:', e);
             return false;
         }
+    },
+
+    // ========================================
+    // Gist 同步专用方法
+    // ========================================
+
+    // 导出所有数据（包括所有用户的待办）
+    exportAllData() {
+        const data = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            exportedBy: this.getCurrentUser()?.name || '未知',
+            data: {
+                bookings: this.getBookings(),
+                expenses: this.getExpenses(),
+                progress: this.getItineraryProgress(),
+                profiles: this.getUserProfiles()
+            }
+        };
+
+        // 收集所有用户的待办清单
+        const members = cruiseData?.members || [];
+        members.forEach(member => {
+            const key = this.keys.TODOS_PREFIX + member.id;
+            const todos = localStorage.getItem(key);
+            if (todos) {
+                data.data[`todos_${member.id}`] = JSON.parse(todos);
+            }
+        });
+
+        return data;
+    },
+
+    // 导入所有数据（用于 Gist 同步）
+    importAllData(importedData) {
+        try {
+            // 验证数据结构
+            if (!importedData || !importedData.data) {
+                throw new Error('无效的数据格式');
+            }
+
+            const data = importedData.data;
+
+            // 导入预订信息
+            if (data.bookings) {
+                this.saveBookings(data.bookings);
+            }
+
+            // 导入支出记录
+            if (data.expenses) {
+                localStorage.setItem(this.keys.EXPENSES, JSON.stringify(data.expenses));
+            }
+
+            // 导入行程进度
+            if (data.progress) {
+                this.saveItineraryProgress(data.progress);
+            }
+
+            // 导入用户资料
+            if (data.profiles) {
+                localStorage.setItem(this.keys.USER_PROFILES, JSON.stringify(data.profiles));
+            }
+
+            // 导入各用户的待办清单
+            Object.keys(data).forEach(key => {
+                if (key.startsWith('todos_')) {
+                    const userId = key.replace('todos_', '');
+                    localStorage.setItem(this.keys.TODOS_PREFIX + userId, JSON.stringify(data[key]));
+                }
+            });
+
+            return true;
+        } catch (e) {
+            console.error('导入所有数据失败:', e);
+            return false;
+        }
     }
 };

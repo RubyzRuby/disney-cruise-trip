@@ -50,8 +50,12 @@
                 <span class="tab-label">记账</span>
             </div>
             <div class="tab-item" data-tab="sos">
-                <span class="tab-icon sos-icon">🆘</span>
-                <span class="tab-label">SOS</span>
+                <span class="tab-icon sos-icon">SOS</span>
+                <span class="tab-label">紧急</span>
+            </div>
+            <div class="tab-item" data-tab="settings">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-label">设置</span>
             </div>
         </nav>
 
@@ -121,15 +125,64 @@
             <!-- SOS紧急联系页 -->
             <section class="page" id="sos">
                 <div class="page-header">
-                    <h2 class="page-title">🆘 紧急联系</h2>
+                    <h2 class="page-title">SOS 紧急联系</h2>
                     <p class="page-subtitle">紧急情况请点击号码拨打</p>
                 </div>
                 <div class="sos-notice">
-                    <span class="sos-icon-bell">🔔</span>
+                    <span class="sos-icon-bell"></span>
                     <span>紧急情况请拨打以下电话。点击号码可直接拨打。</span>
                 </div>
                 <div class="sos-list" id="sosList">
                     <!-- 动态生成 -->
+                </div>
+            </section>
+
+            <!-- 设置页 -->
+            <section class="page" id="settings">
+                <div class="page-header">
+                    <h2 class="page-title">⚙️ 设置</h2>
+                    <p class="page-subtitle">数据同步与分享</p>
+                </div>
+                <div class="settings-container">
+                    <!-- 同步状态卡片 -->
+                    <div class="settings-card">
+                        <h3 class="settings-card-title">☁️ 云端同步</h3>
+                        <div class="sync-status" id="syncStatus">
+                            <div class="sync-status-icon">📵</div>
+                            <div class="sync-status-text">
+                                <p class="sync-status-main">未连接</p>
+                                <p class="sync-status-sub">数据仅存储在本地</p>
+                            </div>
+                        </div>
+                        <div class="sync-actions">
+                            <button class="btn-primary btn-full" id="openSyncBtn">配置同步</button>
+                        </div>
+                    </div>
+
+                    <!-- 数据管理卡片 -->
+                    <div class="settings-card">
+                        <h3 class="settings-card-title">💾 数据管理</h3>
+                        <div class="settings-buttons">
+                            <button class="btn-secondary btn-full" id="exportDataBtn">
+                                <span class="btn-icon">📤</span> 导出数据
+                            </button>
+                            <button class="btn-secondary btn-full" id="importDataBtn">
+                                <span class="btn-icon">📥</span> 导入数据
+                            </button>
+                            <button class="btn-danger btn-full" id="clearDataBtn">
+                                <span class="btn-icon">🗑️</span> 清除所有数据
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 关于卡片 -->
+                    <div class="settings-card">
+                        <h3 class="settings-card-title">ℹ️ 关于</h3>
+                        <div class="about-info">
+                            <p>迪士尼邮轮之旅 v1.0</p>
+                            <p class="about-sub">Z / W / Y 共享行程</p>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -184,8 +237,92 @@
         </div>
     </div>
 
+    <!-- 同步设置弹窗 -->
+    <div class="modal" id="syncModal">
+        <div class="modal-content sync-modal-content">
+            <div class="modal-header">
+                <h3>☁️ 云端同步设置</h3>
+                <button class="modal-close" id="closeSyncModal">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 连接状态 -->
+                <div class="sync-connection-status" id="syncConnectionStatus">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">未连接</span>
+                </div>
+
+                <!-- 创建新 Gist -->
+                <div class="sync-section">
+                    <h4 class="sync-section-title">创建分享链接</h4>
+                    <p class="sync-section-desc">首次使用？创建一个新的云端存储空间</p>
+                    <div class="token-input-group">
+                        <input type="text" class="modal-input" id="githubToken" placeholder="GitHub Token（可选，用于私密存储）">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isPublicGist" checked>
+                            <span>公开 Gist（无需 Token）</span>
+                        </label>
+                    </div>
+                    <button class="btn-primary btn-full" id="createGistBtn">创建分享链接</button>
+                </div>
+
+                <div class="sync-divider">
+                    <span>或</span>
+                </div>
+
+                <!-- 连接现有 Gist -->
+                <div class="sync-section">
+                    <h4 class="sync-section-title">连接现有链接</h4>
+                    <p class="sync-section-desc">已有分享链接？输入 Gist ID 连接</p>
+                    <input type="text" class="modal-input" id="gistIdInput" placeholder="Gist ID（如：a1b2c3d4e5f6...）">
+                    <button class="btn-secondary btn-full" id="connectGistBtn">连接</button>
+                </div>
+
+                <!-- 已连接时的操作 -->
+                <div class="sync-section sync-actions-section" id="syncActionsSection" style="display: none;">
+                    <div class="sync-divider">
+                        <span>同步操作</span>
+                    </div>
+                    <div class="sync-action-buttons">
+                        <button class="btn-primary" id="syncUpBtn">
+                            <span class="btn-icon">↑</span> 上传到云端
+                        </button>
+                        <button class="btn-secondary" id="syncDownBtn">
+                            <span class="btn-icon">↓</span> 从云端下载
+                        </button>
+                    </div>
+                    <button class="btn-danger btn-full" id="disconnectBtn" style="margin-top: 12px;">
+                        断开连接
+                    </button>
+                    <div class="sync-info" id="syncInfo">
+                        <p>Gist ID: <span id="connectedGistId">-</span></p>
+                        <p>上次同步: <span id="lastSyncTime">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入数据弹窗 -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📥 导入数据</h3>
+                <button class="modal-close" id="closeImportModal">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="import-hint">将之前导出的 JSON 数据粘贴到下方：</p>
+                <textarea class="modal-textarea" id="importDataText" placeholder="粘贴 JSON 数据..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelImport">取消</button>
+                <button class="btn-primary" id="confirmImport">导入</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/data.js"></script>
     <script src="js/storage.js"></script>
+    <script src="js/gist.js"></script>
     <script src="js/tabs.js"></script>
     <script src="js/app.js"></script>
 </body>
