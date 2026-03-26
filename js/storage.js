@@ -76,12 +76,17 @@ const Storage = {
     // 获取当前用户的待办清单
     getTodos() {
         const user = this.getCurrentUser();
-        if (!user) return cruiseData.defaultTodos;
+        if (!user) {
+            console.log('getTodos: no current user');
+            // 返回深拷贝，避免修改原始数据
+            return JSON.parse(JSON.stringify(cruiseData.defaultTodos));
+        }
 
         const key = this.keys.TODOS_PREFIX + user.id;
         const data = localStorage.getItem(key);
 
         if (data) {
+            console.log('getTodos: found data for user', user.id);
             const todos = JSON.parse(data);
             // 转换旧数据格式：将布尔值转换为对象格式
             this.migrateTodoFormat(todos);
@@ -89,7 +94,10 @@ const Storage = {
         }
 
         // 首次使用：复制默认数据并添加用户专属标记
+        console.log('getTodos: first time for user', user.id);
         const userTodos = JSON.parse(JSON.stringify(cruiseData.defaultTodos));
+        // 确保所有待办事项的 completed 是对象格式
+        this.migrateTodoFormat(userTodos);
         this.saveTodos(userTodos);
         return userTodos;
     },
@@ -146,16 +154,34 @@ const Storage = {
 
     // 切换当前用户的待办完成状态
     toggleTodoStatus(category, todoId) {
+        console.log('toggleTodoStatus called:', category, todoId);
+
         const user = this.getCurrentUser();
-        if (!user) return false;
+        console.log('current user:', user);
+        if (!user) {
+            console.log('No user, returning false');
+            return false;
+        }
 
         const todos = this.getTodos();
-        const todo = todos[category]?.find(t => t.id === todoId);
+        console.log('todos keys:', Object.keys(todos));
+        console.log('category exists:', category in todos);
 
-        if (!todo) return false;
+        if (todos[category]) {
+            console.log('todos in category:', todos[category].map(t => t.id));
+        }
+
+        const todo = todos[category]?.find(t => t.id === todoId);
+        console.log('found todo:', todo);
+
+        if (!todo) {
+            console.log('Todo not found, returning false');
+            return false;
+        }
 
         // 确保 completed 是对象格式
         if (typeof todo.completed !== 'object' || todo.completed === null) {
+            console.log('Migrating todo format, old value:', todo.completed);
             const oldValue = todo.completed === true;
             todo.completed = {};
             cruiseData.members.forEach(m => {
@@ -164,7 +190,10 @@ const Storage = {
         }
 
         // 切换当前用户的状态
+        console.log('Toggling status for user:', user.id, 'current:', todo.completed[user.id]);
         todo.completed[user.id] = !todo.completed[user.id];
+        console.log('New status:', todo.completed[user.id]);
+
         this.saveTodos(todos);
         return true;
     },

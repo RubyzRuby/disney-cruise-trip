@@ -643,7 +643,10 @@ const DisneyCruiseApp = {
     },
 
     toggleTodo(category, id) {
-        if (Storage.toggleTodoStatus(category, id)) {
+        console.log('toggleTodo called:', category, id);
+        const result = Storage.toggleTodoStatus(category, id);
+        console.log('toggleTodoStatus result:', result);
+        if (result) {
             this.renderTodos();
             this.updateTodoProgress();
         }
