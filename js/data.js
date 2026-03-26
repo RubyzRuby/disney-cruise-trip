@@ -92,41 +92,40 @@ const cruiseData = {
             day: 3,
             date: "6月20日",
             weekday: "周六",
-            title: "槟城岸上观光",
-            location: "槟城, 马来西亚",
-            emoji: "🇲🇾",
+            title: "海上巡航日",
+            location: "海上",
+            emoji: "🌊",
             activities: [
-                { time: "07:00", title: "早餐 + 准备下船", desc: "礼宾客人优先下船" },
-                { time: "08:00", title: "抵达槟城", desc: "乔治市探索开始", highlight: true },
-                { time: "09:00", title: "乔治市壁画街", desc: "网红打卡：姐弟共骑、机车男孩", highlight: true },
-                { time: "11:00", title: "姓氏桥", desc: "世界文化遗产，感受华人历史" },
-                { time: "12:30", title: "槟城午餐", desc: "必吃：炒粿条、叻沙、煎蕊", mustDo: true },
-                { time: "14:00", title: "极乐寺", desc: "东南亚最大佛教寺庙" },
-                { time: "15:30", title: "升旗山", desc: "俯瞰槟城全景", highlight: true },
-                { time: "17:00", title: "返回邮轮", desc: "最晚登船时间" },
-                { time: "19:00", title: "晚餐 @ Arendelle", desc: "冰雪奇缘主题餐厅体验", highlight: true },
-                { time: "21:00", title: "甲板电影之夜", desc: "露天大屏幕迪士尼电影" }
+                { time: "08:00", title: "礼宾专属早餐", desc: "在礼宾休息室享用" },
+                { time: "09:30", title: "🏊 水上乐园", desc: "AquaMouse水上过山车、游泳池", highlight: true },
+                { time: "11:00", title: "🎭 冰雪奇缘演出", desc: "安娜和艾莎舞台表演", highlight: true },
+                { time: "12:30", title: "午餐 @ Arendelle", desc: "冰雪奇缘主题餐厅", confirmed: true },
+                { time: "14:00", title: "🎬 电影院", desc: "迪士尼最新电影放映" },
+                { time: "15:30", title: "🎮 游戏厅", desc: "海上电子游戏中心" },
+                { time: "17:00", title: "🍹 礼宾甲板时光", desc: "私人甲板享受日落", highlight: true },
+                { time: "19:00", title: "晚餐 @  Animator's Palate", desc: "动画师主题餐厅" },
+                { time: "21:00", title: "🎆 甲板烟花秀", desc: "海上烟花表演", highlight: true },
+                { time: "22:00", title: "🎵 现场音乐", desc: "成人专属酒吧Live Music" }
             ]
         },
         {
             day: 4,
             date: "6月21日",
             weekday: "周日",
-            title: "普吉岛岸上观光",
-            location: "普吉岛, 泰国",
-            emoji: "🇹🇭",
+            title: "海上巡航日",
+            location: "海上",
+            emoji: "⚓",
             activities: [
-                { time: "07:00", title: "早餐 + 准备下船", desc: "" },
-                { time: "08:00", title: "抵达普吉岛", desc: "泰国最大海岛", highlight: true },
-                { time: "09:00", title: "芭东海滩", desc: "日光浴、游泳、水上活动", highlight: true },
-                { time: "12:00", title: "普吉镇午餐", desc: "泰式海鲜大餐", mustDo: true },
-                { time: "14:00", title: "普吉老城", desc: "葡式建筑、网红咖啡馆" },
-                { time: "15:30", title: "查龙寺", desc: "普吉最大佛教寺庙" },
-                { time: "16:30", title: "神仙半岛", desc: "绝美日落观景点", highlight: true },
-                { time: "17:30", title: "泰式按摩", desc: "放松身心", mustDo: true },
-                { time: "18:30", title: "返回邮轮", desc: "" },
-                { time: "19:00", title: "正装晚宴", desc: "船长欢迎晚宴（Gala Night）", mustDo: true, highlight: true },
-                { time: "21:00", title: "告别烟花秀", desc: "最盛大的烟花表演", highlight: true }
+                { time: "08:00", title: "客房服务早餐", desc: "礼宾房免费服务" },
+                { time: "09:30", title: "🏋️ 健身房", desc: "海景健身房锻炼" },
+                { time: "11:00", title: "🎨 绘画课程", desc: "迪士尼角色绘画教学", highlight: true },
+                { time: "12:30", title: "午餐 @ Palo Trattoria", desc: "意大利餐厅（如已预约）", confirmed: true },
+                { time: "14:00", title: "💆 SPA体验", desc: "水疗中心放松（如已预约）", confirmed: true },
+                { time: "15:30", title: "🛍️ 免税店购物", desc: "船上商店购物时光" },
+                { time: "17:00", title: "📸 专业拍照", desc: "使用Photo Package拍摄", confirmed: true },
+                { time: "19:00", title: "正装晚宴", desc: "船长晚宴（Gala Night）", mustDo: true, highlight: true },
+                { time: "21:00", title: "告别派对", desc: "邮轮最后一晚庆祝", highlight: true },
+                { time: "22:30", title: "深夜披萨", desc: "甲板免费披萨" }
             ]
         },
         {
@@ -163,7 +162,7 @@ const cruiseData = {
             { id: 'b6', text: '预订Palo Steakhouse成人餐厅', completed: false },
             { id: 'b7', text: '预约水疗SPA时间', completed: false },
             { id: 'b8', text: '准备正装晚宴服装', completed: false },
-            { id: 'b9', text: '兑换新币和泰铢现金', completed: false },
+            { id: 'b9', text: '兑换新币现金', completed: false },
             { id: 'b10', text: '准备防晒用品和泳衣', completed: false }
         ],
         boarding: [
@@ -176,15 +175,17 @@ const cruiseData = {
             { id: 'o1', text: '参加安全演习', completed: false },
             { id: 'o2', text: '下载船上WiFi（礼宾房免费）', completed: false },
             { id: 'o3', text: '预约角色见面会', completed: false },
-            { id: 'o4', text: '探索邮轮设施', completed: false },
-            { id: 'o5', text: '享受礼宾专属甲板', completed: false }
+            { id: 'o4', text: '探索邮轮7大主题区', completed: false },
+            { id: 'o5', text: '享受礼宾专属甲板', completed: false },
+            { id: 'o6', text: '体验AquaMouse水上过山车', completed: false },
+            { id: 'o7', text: '观看百老汇演出', completed: false },
+            { id: 'o8', text: '购买Photo Unlimited Package', completed: false }
         ],
         shore: [
-            { id: 's1', text: '槟城：打卡壁画街', completed: false },
-            { id: 's2', text: '槟城：品尝当地美食', completed: false },
-            { id: 's3', text: '普吉岛：海滩日光浴', completed: false },
-            { id: 's4', text: '普吉岛：体验泰式按摩', completed: false },
-            { id: 's5', text: '注意回船时间', completed: false }
+            { id: 's1', text: 'Day 5：离船前往环球影城', completed: false },
+            { id: 's2', text: 'Day 5：哈利波特魔法世界', completed: false },
+            { id: 's3', text: 'Day 5：三把扫帚酒吧午餐', completed: false },
+            { id: 's4', text: 'Day 5：奥利凡德魔杖店', completed: false }
         ]
     },
 

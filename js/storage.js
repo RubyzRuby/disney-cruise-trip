@@ -6,6 +6,7 @@ const Storage = {
     // 存储键名
     keys: {
         CURRENT_USER: 'disney_cruise_current_user',
+        USER_PROFILES: 'disney_cruise_profiles',
         TODOS_PREFIX: 'disney_cruise_todos_',
         EXPENSES: 'disney_cruise_expenses',
         BOOKINGS: 'disney_cruise_bookings',
@@ -25,10 +26,45 @@ const Storage = {
     setCurrentUser(userId) {
         const member = cruiseData.members.find(m => m.id === userId);
         if (member) {
-            localStorage.setItem(this.keys.CURRENT_USER, JSON.stringify(member));
-            return member;
+            // 检查是否有自定义名称
+            const customName = this.getUserCustomName(userId);
+            const userToSave = {
+                ...member,
+                displayName: customName || member.name
+            };
+            localStorage.setItem(this.keys.CURRENT_USER, JSON.stringify(userToSave));
+            return userToSave;
         }
         return null;
+    },
+
+    // 获取用户自定义名称
+    getUserCustomName(userId) {
+        const profiles = this.getUserProfiles();
+        return profiles[userId]?.customName;
+    },
+
+    // 获取所有用户资料
+    getUserProfiles() {
+        const data = localStorage.getItem(this.keys.USER_PROFILES);
+        return data ? JSON.parse(data) : {};
+    },
+
+    // 保存用户自定义名称
+    saveUserCustomName(userId, customName) {
+        const profiles = this.getUserProfiles();
+        if (!profiles[userId]) {
+            profiles[userId] = {};
+        }
+        profiles[userId].customName = customName;
+        localStorage.setItem(this.keys.USER_PROFILES, JSON.stringify(profiles));
+
+        // 同时更新当前用户显示名称
+        const currentUser = this.getCurrentUser();
+        if (currentUser && currentUser.id === userId) {
+            currentUser.displayName = customName;
+            localStorage.setItem(this.keys.CURRENT_USER, JSON.stringify(currentUser));
+        }
     },
 
     // 是否是主编辑
@@ -70,12 +106,8 @@ const Storage = {
         return data ? JSON.parse(data) : [];
     },
 
-    // 保存支出记录（仅主编辑可编辑）
+    // 保存支出记录（所有成员可编辑）
     saveExpenses(expenses) {
-        if (!this.isAdmin()) {
-            console.warn('只有主编辑可以修改支出记录');
-            return false;
-        }
         localStorage.setItem(this.keys.EXPENSES, JSON.stringify(expenses));
         return true;
     },
@@ -99,12 +131,8 @@ const Storage = {
         return cruiseData.defaultBookings;
     },
 
-    // 保存预订信息（仅主编辑可编辑）
+    // 保存预订信息（所有成员可编辑）
     saveBookings(bookings) {
-        if (!this.isAdmin()) {
-            console.warn('只有主编辑可以修改预订信息');
-            return false;
-        }
         localStorage.setItem(this.keys.BOOKINGS, JSON.stringify(bookings));
         return true;
     },

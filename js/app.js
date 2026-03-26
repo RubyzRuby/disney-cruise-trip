@@ -94,11 +94,28 @@ const DisneyCruiseApp = {
             userBadge.className = 'user-badge';
             userBadge.innerHTML = `
                 <span class="user-badge-emoji">${user.emoji}</span>
-                <span class="user-badge-name">${user.name}</span>
-                ${user.role === 'admin' ? '<span class="user-badge-admin">👑</span>' : ''}
+                <span class="user-badge-name" id="userDisplayName">${user.displayName || user.name}</span>
+                <button class="user-edit-btn" onclick="DisneyCruiseApp.editUserName()" title="修改名字">✏️</button>
                 <button class="user-switch-btn" onclick="DisneyCruiseApp.switchUser()">切换</button>
             `;
             header.appendChild(userBadge);
+        }
+    },
+
+    // 编辑用户名称
+    editUserName() {
+        const user = Storage.getCurrentUser();
+        if (!user) return;
+
+        const newName = prompt('请输入你的名字：', user.displayName || user.name);
+        if (newName && newName.trim()) {
+            Storage.saveUserCustomName(user.id, newName.trim());
+            // 更新显示
+            const displayNameEl = document.getElementById('userDisplayName');
+            if (displayNameEl) {
+                displayNameEl.textContent = newName.trim();
+            }
+            alert('名字已保存！');
         }
     },
 
