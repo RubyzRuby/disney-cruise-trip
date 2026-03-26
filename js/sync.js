@@ -9,7 +9,7 @@ const GistSync = {
 
     // 默认配置（Gist ID 公开没关系，Token 需要保密）
     DEFAULT_GIST_ID: 'c458bba1a1ea0dcb4b95257760538f2b',
-    DEFAULT_TOKEN: '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', // 首次使用时自动填充
+    DEFAULT_TOKEN: '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', // 首次使用时自动填充
 
     // 存储键名
     keys: {
