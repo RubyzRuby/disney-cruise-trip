@@ -1,21 +1,30 @@
 // ========================================
-// GitHub Gist 同步模块（硬编码 Token 版本）
-// 无需配置，打开即用
+// GitHub Gist 同步模块（Gitee Pages 版本）
+// Token 由用户在首次使用时输入
 // ========================================
 
 const GistSync = {
     // Gist API 基础 URL
     API_BASE: 'https://api.github.com/gists',
 
-    // 硬编码配置（三人共用）
-    DEFAULT_CONFIG: {
-        gistId: '9357096ca1104839d752dcbad9c0792c',
-        token: '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'
-    },
+    // 默认配置（Gist ID 公开没关系，Token 需要保密）
+    DEFAULT_GIST_ID: '9357096ca1104839d752dcbad9c0792c',
+    DEFAULT_TOKEN: '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', // 首次使用时自动填充
 
     // 存储键名
     keys: {
+        TOKEN: 'disney_cruise_token',
         LAST_SYNC: 'disney_cruise_last_sync'
+    },
+
+    // 获取 Token（优先从 localStorage，其次用默认值）
+    getToken() {
+        return localStorage.getItem(this.keys.TOKEN) || this.DEFAULT_TOKEN;
+    },
+
+    // 保存 Token
+    saveToken(token) {
+        localStorage.setItem(this.keys.TOKEN, token);
     },
 
     // 获取最后同步时间
@@ -29,9 +38,14 @@ const GistSync = {
         localStorage.setItem(this.keys.LAST_SYNC, date.toISOString());
     },
 
+    // 检查是否已设置 Token
+    hasToken() {
+        return !!localStorage.getItem(this.keys.TOKEN);
+    },
+
     // 获取 Gist
     async fetchGist() {
-        const gistId = this.DEFAULT_CONFIG.gistId;
+        const gistId = this.DEFAULT_GIST_ID;
         try {
             const response = await fetch(`${this.API_BASE}/${gistId}`, {
                 method: 'GET',
@@ -76,8 +90,8 @@ const GistSync = {
 
     // 更新 Gist
     async updateGist(data) {
-        const gistId = this.DEFAULT_CONFIG.gistId;
-        const token = this.DEFAULT_CONFIG.token;
+        const gistId = this.DEFAULT_GIST_ID;
+        const token = this.getToken();
         const filename = 'disney-cruise-data.json';
         const content = JSON.stringify(data, null, 2);
 
@@ -223,6 +237,6 @@ const GistSync = {
 
     // 获取分享链接
     getShareUrl() {
-        return `https://gist.github.com/${this.DEFAULT_CONFIG.gistId}`;
+        return `https://gist.github.com/${this.DEFAULT_GIST_ID}`;
     }
 };
