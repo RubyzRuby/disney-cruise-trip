@@ -2,10 +2,17 @@
     tabs: null,
     pages: null,
     currentTab: 'itinerary',
+    isAnimating: false,
 
     init() {
         this.tabs = document.querySelectorAll('.tab-item');
         this.pages = document.querySelectorAll('.page');
+
+        // 初始化当前标签
+        const activeTab = document.querySelector('.tab-item.active');
+        if (activeTab) {
+            this.currentTab = activeTab.dataset.tab;
+        }
 
         this.tabs.forEach(tab => {
             tab.addEventListener('click', (e) => this.switchTab(e));
@@ -32,40 +39,51 @@
         if (!targetTab) {
             targetTab = document.querySelector(`.tab-item[data-tab="${targetId}"]`);
         }
-        if (!targetTab || this.currentTab === targetId) return;
 
+        // 防止重复点击或动画中切换
+        if (!targetTab || this.currentTab === targetId || this.isAnimating) return;
+
+        this.isAnimating = true;
+        const prevTab = this.currentTab;
         this.currentTab = targetId;
 
-        // 移除所有活动状态
+        // 获取当前页面和新页面
+        const currentPage = document.getElementById(prevTab);
+        const targetPage = document.getElementById(targetId);
+
+        // 立即更新标签状态
         this.tabs.forEach(t => t.classList.remove('active'));
-        this.pages.forEach(p => {
-            if (p.classList.contains('active')) {
-                p.style.animation = 'fadeOut 0.2s ease';
-            }
-        });
+        targetTab.classList.add('active');
 
-        // 延迟切换以显示动画
+        // 页面切换动画
+        if (currentPage) {
+            currentPage.style.animation = 'fadeOut 0.2s ease forwards';
+        }
+
         setTimeout(() => {
-            this.pages.forEach(p => {
-                p.classList.remove('active');
-                p.style.animation = '';
-            });
+            // 隐藏当前页面
+            if (currentPage) {
+                currentPage.classList.remove('active');
+                currentPage.style.animation = '';
+            }
 
-            // 添加新的活动状态
-            targetTab.classList.add('active');
-            const targetPage = document.getElementById(targetId);
+            // 显示新页面
             if (targetPage) {
                 targetPage.classList.add('active');
+                targetPage.style.animation = 'fadeIn 0.3s ease';
+
                 // 滚动到顶部
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) {
-                    mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+                    mainContent.scrollTop = 0;
                 }
             }
 
+            this.isAnimating = false;
+
             // 触发页面切换事件
             document.dispatchEvent(new CustomEvent('tabChange', { detail: { tab: targetId } }));
-        }, 150);
+        }, 200);
     },
 
     // 切换到指定标签
@@ -75,14 +93,14 @@
 };
 
 // 添加淡出动画
-const style = document.createElement('style');
-style.textContent = `
+const tabStyle = document.createElement('style');
+tabStyle.textContent = `
     @keyframes fadeOut {
         from { opacity: 1; transform: translateY(0); }
         to { opacity: 0; transform: translateY(-10px); }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(tabStyle);
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
