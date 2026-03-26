@@ -8,8 +8,8 @@ const GistSync = {
     API_BASE: 'https://api.github.com/gists',
 
     // 默认配置（Gist ID 公开没关系，Token 需要保密）
-    DEFAULT_GIST_ID: '9357096ca1104839d752dcbad9c0792c',
-    DEFAULT_TOKEN: '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', // 首次使用时自动填充
+    DEFAULT_GIST_ID: 'c458bba1a1ea0dcb4b95257760538f2b',
+    DEFAULT_TOKEN: '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', // 首次使用时自动填充
 
     // 存储键名
     keys: {
