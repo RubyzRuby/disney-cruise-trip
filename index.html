@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>迪士尼邮轮之旅 | Disney Cruise Adventure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans antialiased">
+    <!-- 星空背景装饰 -->
+    <div class="stars-container" id="stars"></div>
+
+    <!-- 主应用容器 -->
+    <div class="app-container">
+        <!-- 头部区域 -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="magic-stars">✨ ✨ ✨</div>
+                <h1 class="main-title">DISNEY CRUISE</h1>
+                <p class="subtitle">迪士尼探险号邮轮之旅</p>
+                <div class="date-range">18 JUN — 22 JUN 2026</div>
+                <div class="countdown" id="countdown">⏳ 距离出发还有 <span id="days">--</span> 天</div>
+            </div>
+        </header>
+
+        <!-- 标签导航栏 -->
+        <nav class="tab-bar">
+            <div class="tab-item active" data-tab="itinerary">
+                <span class="tab-icon">🗓️</span>
+                <span class="tab-label">行程</span>
+            </div>
+            <div class="tab-item" data-tab="todo">
+                <span class="tab-icon">✅</span>
+                <span class="tab-label">待办</span>
+            </div>
+            <div class="tab-item" data-tab="bookings">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label">预订</span>
+            </div>
+            <div class="tab-item" data-tab="expense">
+                <span class="tab-icon">💰</span>
+                <span class="tab-label">记账</span>
+            </div>
+            <div class="tab-item" data-tab="sos">
+                <span class="tab-icon sos-icon">🆘</span>
+                <span class="tab-label">SOS</span>
+            </div>
+        </nav>
+
+        <!-- 页面内容区域 -->
+        <main class="main-content">
+            <!-- 行程规划页 -->
+            <section class="page active" id="itinerary">
+                <div class="page-header">
+                    <h2 class="page-title">📍 行程规划</h2>
+                    <p class="page-subtitle">5天4晚 · 礼宾套房体验</p>
+                </div>
+                <div class="timeline-container" id="timeline">
+                    <!-- 动态生成 -->
+                </div>
+            </section>
+
+            <!-- 待办事项页 -->
+            <section class="page" id="todo">
+                <div class="page-header">
+                    <h2 class="page-title">📝 待办清单</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="todoProgress"></div>
+                    </div>
+                    <p class="progress-text" id="progressText">0% 完成</p>
+                </div>
+                <div class="todo-categories" id="todoContainer">
+                    <!-- 动态生成 -->
+                </div>
+                <button class="fab-btn" id="addTodoBtn">+</button>
+            </section>
+
+            <!-- 预订管理页 -->
+            <section class="page" id="bookings">
+                <div class="page-header">
+                    <h2 class="page-title">📋 预订管理</h2>
+                    <p class="page-subtitle">所有预订信息一目了然</p>
+                </div>
+                <div class="bookings-grid" id="bookingsContainer">
+                    <!-- 动态生成 -->
+                </div>
+            </section>
+
+            <!-- 记账功能页 -->
+            <section class="page" id="expense">
+                <div class="page-header">
+                    <h2 class="page-title">💰 旅行记账</h2>
+                    <div class="expense-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">总花费</span>
+                            <span class="summary-value" id="totalExpense">¥0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">人均</span>
+                            <span class="summary-value" id="perPerson">¥0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="expense-chart-container">
+                    <canvas id="expenseChart" width="300" height="200"></canvas>
+                </div>
+                <div class="expense-list" id="expenseList">
+                    <!-- 动态生成 -->
+                </div>
+                <button class="fab-btn" id="addExpenseBtn">+</button>
+            </section>
+
+            <!-- SOS紧急联系页 -->
+            <section class="page" id="sos">
+                <div class="page-header">
+                    <h2 class="page-title">🆘 紧急联系</h2>
+                    <p class="page-subtitle">紧急情况请点击号码拨打</p>
+                </div>
+                <div class="sos-notice">
+                    <span class="sos-icon-bell">🔔</span>
+                    <span>紧急情况请拨打以下电话。点击号码可直接拨打。</span>
+                </div>
+                <div class="sos-list" id="sosList">
+                    <!-- 动态生成 -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 添加待办弹窗 -->
+    <div class="modal" id="todoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加待办事项</h3>
+                <button class="modal-close" id="closeTodoModal">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="modal-input" id="todoInput" placeholder="输入待办事项...">
+                <select class="modal-select" id="todoCategory">
+                    <option value="before">行前准备</option>
+                    <option value="boarding">登船前</option>
+                    <option value="onboard">船上活动</option>
+                    <option value="shore">岸上观光</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelTodo">取消</button>
+                <button class="btn-primary" id="saveTodo">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加记账弹窗 -->
+    <div class="modal" id="expenseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加支出</h3>
+                <button class="modal-close" id="closeExpenseModal">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="number" class="modal-input" id="expenseAmount" placeholder="金额（元）">
+                <input type="text" class="modal-input" id="expenseItem" placeholder="项目名称">
+                <select class="modal-select" id="expenseCategory">
+                    <option value="cruise">邮轮费用</option>
+                    <option value="flight">机票</option>
+                    <option value="hotel">酒店</option>
+                    <option value="food">餐饮</option>
+                    <option value="shopping">购物</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelExpense">取消</button>
+                <button class="btn-primary" id="saveExpense">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/tabs.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
