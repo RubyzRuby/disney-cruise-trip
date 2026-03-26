@@ -396,6 +396,8 @@ const DisneyCruiseApp = {
             const check = item.querySelector('.activity-check');
             check.classList.toggle('checked');
         }
+        // 触发自动同步
+        GistSync.autoSync();
     },
 
     openActivityModal(dayIdx = null, actIdx = null) {
@@ -496,6 +498,9 @@ const DisneyCruiseApp = {
 
         document.getElementById('activityModal').remove();
         this.renderItinerary();
+        // 触发自动同步（行程数据保存在内存中，需要导出到 storage）
+        this.syncItineraryToStorage();
+        GistSync.autoSync();
     },
 
     editActivity(dayIdx, actIdx) {
@@ -507,7 +512,17 @@ const DisneyCruiseApp = {
             cruiseData.itinerary[dayIdx].activities.splice(actIdx, 1);
             this.showToast('✅ 活动已删除');
             this.renderItinerary();
+            // 触发自动同步
+            this.syncItineraryToStorage();
+            GistSync.autoSync();
         }
+    },
+
+    // 将行程数据同步到 Storage（用于 Gist 同步）
+    syncItineraryToStorage() {
+        // 行程数据保存在 cruiseData.itinerary 中
+        // 需要将其导出以便 Gist 同步可以获取
+        localStorage.setItem('disney_cruise_itinerary_data', JSON.stringify(cruiseData.itinerary));
     },
 
     editDay(dayIdx) {
@@ -566,6 +581,9 @@ const DisneyCruiseApp = {
         this.showToast('✅ 日期信息已更新');
         document.getElementById('dayModal').remove();
         this.renderItinerary();
+        // 触发自动同步
+        this.syncItineraryToStorage();
+        GistSync.autoSync();
     },
 
     // 待办事项
@@ -649,6 +667,8 @@ const DisneyCruiseApp = {
         if (result) {
             this.renderTodos();
             this.updateTodoProgress();
+            // 触发自动同步
+            GistSync.autoSync();
         }
     },
 
@@ -668,6 +688,8 @@ const DisneyCruiseApp = {
         });
         this.renderTodos();
         this.updateTodoProgress();
+        // 触发自动同步
+        GistSync.autoSync();
     },
 
     addTodo(category, text) {
@@ -695,6 +717,8 @@ const DisneyCruiseApp = {
 
         this.renderTodos();
         this.updateTodoProgress();
+        // 触发自动同步
+        GistSync.autoSync();
     },
 
     updateTodoProgress() {
@@ -905,6 +929,8 @@ const DisneyCruiseApp = {
         Storage.saveBookings(bookings);
         document.getElementById('bookingModal').remove();
         this.renderBookings();
+        // 触发自动同步
+        GistSync.autoSync();
     },
 
     editBooking(index) {
@@ -918,6 +944,8 @@ const DisneyCruiseApp = {
             Storage.saveBookings(bookings);
             this.showToast('✅ 预订已删除');
             this.renderBookings();
+            // 触发自动同步
+            GistSync.autoSync();
         }
     },
 
@@ -967,6 +995,8 @@ const DisneyCruiseApp = {
         this.renderExpenses();
         this.updateExpenseSummary();
         this.drawExpenseChart();
+        // 触发自动同步
+        GistSync.autoSync();
     },
 
     updateExpenseSummary() {
@@ -1346,6 +1376,7 @@ const DisneyCruiseApp = {
         const config = GistSync.getConfig();
         const lastSync = GistSync.getLastSync();
         const isConnected = GistSync.isConnected();
+        const hasToken = !!config.token;
 
         // 更新连接状态
         const statusEl = document.getElementById('syncConnectionStatus');
@@ -1354,7 +1385,13 @@ const DisneyCruiseApp = {
             const text = statusEl.querySelector('.status-text');
             if (isConnected) {
                 dot.classList.remove('offline');
-                text.textContent = '已连接';
+                if (hasToken) {
+                    dot.classList.add('auto-sync');
+                    text.textContent = '已连接（自动同步开启）';
+                } else {
+                    dot.classList.remove('auto-sync');
+                    text.textContent = '已连接（只读模式）';
+                }
             } else {
                 dot.classList.add('offline');
                 text.textContent = '未连接';
@@ -1415,6 +1452,7 @@ const DisneyCruiseApp = {
     // 连接到现有 Gist
     async connectToGist() {
         const gistId = document.getElementById('gistIdInput')?.value.trim();
+        const token = document.getElementById('connectTokenInput')?.value.trim();
         if (!gistId) {
             this.showToast('⚠️ 请输入 Gist ID');
             return;
@@ -1431,7 +1469,7 @@ const DisneyCruiseApp = {
             // 保存配置
             GistSync.saveConfig({
                 gistId: gistId,
-                token: null,
+                token: token || null,
                 autoSync: true
             });
             GistSync.saveLastSync();

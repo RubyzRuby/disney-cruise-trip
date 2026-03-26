@@ -10,7 +10,8 @@ const Storage = {
         TODOS_PREFIX: 'disney_cruise_todos_',
         EXPENSES: 'disney_cruise_expenses',
         BOOKINGS: 'disney_cruise_bookings',
-        ITINERARY_PROGRESS: 'disney_cruise_progress'
+        ITINERARY_PROGRESS: 'disney_cruise_progress',
+        ITINERARY_DATA: 'disney_cruise_itinerary_data'
     },
 
     // 获取当前用户
@@ -337,7 +338,8 @@ const Storage = {
                 bookings: this.getBookings(),
                 expenses: this.getExpenses(),
                 progress: this.getItineraryProgress(),
-                profiles: this.getUserProfiles()
+                profiles: this.getUserProfiles(),
+                itinerary: this.getItineraryData()
             }
         };
 
@@ -352,6 +354,21 @@ const Storage = {
         });
 
         return data;
+    },
+
+    // 获取行程数据
+    getItineraryData() {
+        const data = localStorage.getItem(this.keys.ITINERARY_DATA);
+        if (data) {
+            return JSON.parse(data);
+        }
+        // 如果没有本地存储的行程数据，返回当前内存中的数据
+        return cruiseData?.itinerary || [];
+    },
+
+    // 保存行程数据
+    saveItineraryData(itinerary) {
+        localStorage.setItem(this.keys.ITINERARY_DATA, JSON.stringify(itinerary));
     },
 
     // 导入所有数据（用于 Gist 同步）
@@ -382,6 +399,15 @@ const Storage = {
             // 导入用户资料
             if (data.profiles) {
                 localStorage.setItem(this.keys.USER_PROFILES, JSON.stringify(data.profiles));
+            }
+
+            // 导入行程数据
+            if (data.itinerary) {
+                localStorage.setItem(this.keys.ITINERARY_DATA, JSON.stringify(data.itinerary));
+                // 同时更新内存中的行程数据
+                if (cruiseData && cruiseData.itinerary) {
+                    cruiseData.itinerary = data.itinerary;
+                }
             }
 
             // 导入各用户的待办清单

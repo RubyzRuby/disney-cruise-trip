@@ -309,6 +309,26 @@ const GistSync = {
         localStorage.removeItem(this.keys.LAST_SYNC);
     },
 
+    // 自动同步（如果配置了自动同步且已连接）
+    async autoSync() {
+        const config = this.getConfig();
+        if (config.autoSync && config.gistId && config.token) {
+            console.log('Auto-sync triggered...');
+            // 延迟执行，避免频繁操作触发多次同步
+            if (this._syncTimeout) {
+                clearTimeout(this._syncTimeout);
+            }
+            this._syncTimeout = setTimeout(async () => {
+                const result = await this.syncUp();
+                if (result.success) {
+                    console.log('Auto-sync successful');
+                } else {
+                    console.log('Auto-sync failed:', result.error);
+                }
+            }, 2000); // 延迟2秒执行
+        }
+    },
+
     // 检查是否已连接
     isConnected() {
         const config = this.getConfig();

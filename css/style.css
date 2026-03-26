@@ -1628,6 +1628,12 @@ body {
     box-shadow: none;
 }
 
+.status-dot.auto-sync {
+    background: var(--gold-primary);
+    box-shadow: 0 0 8px var(--gold-primary);
+    animation: pulse 2s infinite;
+}
+
 .status-text {
     font-size: 14px;
     color: var(--text-secondary);
