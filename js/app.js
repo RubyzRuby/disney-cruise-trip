@@ -18,6 +18,8 @@ const DisneyCruiseApp = {
         this.initExpense();
         this.initSOS();
         this.initModals();
+        this.initExportFeature();
+        this.initEnhancedStars();
 
         console.log('🚢 迪士尼邮轮App已启动！当前用户:', Storage.getCurrentUser()?.name);
     },
@@ -53,12 +55,12 @@ const DisneyCruiseApp = {
                             <div class="user-option-emoji">${member.emoji}</div>
                             <div class="user-option-info">
                                 <div class="user-option-name">${member.name}</div>
-                                <div class="user-option-role">${member.role === 'admin' ? '主编辑 · 可修改所有内容' : '成员 · 可管理个人待办'}</div>
+                                <div class="user-option-role">${member.role === 'admin' ? '主编辑 · 可编辑所有内容' : '成员 · 可编辑所有内容'}</div>
                             </div>
                         </div>
                     `).join('')}
                 </div>
-                <p class="user-selector-hint">💡 提示：指定一人做主编辑，其他人使用成员身份</p>
+                <p class="user-selector-hint">💡 提示：所有人都可以编辑行程、预订和记账信息</p>
             </div>
         `;
         document.body.appendChild(selector);
@@ -102,21 +104,99 @@ const DisneyCruiseApp = {
         }
     },
 
-    // 编辑用户名称
+    // 编辑用户名称 - 优化版本
     editUserName() {
         const user = Storage.getCurrentUser();
         if (!user) return;
 
-        const newName = prompt('请输入你的名字：', user.displayName || user.name);
-        if (newName && newName.trim()) {
-            Storage.saveUserCustomName(user.id, newName.trim());
-            // 更新显示
-            const displayNameEl = document.getElementById('userDisplayName');
-            if (displayNameEl) {
-                displayNameEl.textContent = newName.trim();
+        // 创建自定义弹窗替代 prompt
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'editNameModal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-height: 300px;">
+                <div class="modal-header">
+                    <h3>✏️ 修改你的名字</h3>
+                    <button class="modal-close" onclick="document.getElementById('editNameModal').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="modal-input" id="newNameInput"
+                           placeholder="输入你的名字" value="${user.displayName || user.name}"
+                           maxlength="10" style="text-align: center; font-size: 18px;">
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-top: 8px;">
+                        最多10个字符
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="document.getElementById('editNameModal').remove()">取消</button>
+                    <button class="btn-primary" id="saveNameBtn">保存</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const input = document.getElementById('newNameInput');
+        input.focus();
+        input.select();
+
+        // 绑定保存按钮
+        document.getElementById('saveNameBtn').addEventListener('click', () => {
+            const newName = input.value.trim();
+            if (newName && newName.length <= 10) {
+                Storage.saveUserCustomName(user.id, newName);
+                const displayNameEl = document.getElementById('userDisplayName');
+                if (displayNameEl) {
+                    displayNameEl.textContent = newName;
+                    // 添加闪烁效果
+                    displayNameEl.style.animation = 'nameFlash 0.6s ease';
+                    setTimeout(() => displayNameEl.style.animation = '', 600);
+                }
+                modal.remove();
+                this.showToast('✨ 名字已保存！');
+            } else if (!newName) {
+                input.style.borderColor = 'var(--accent-sos)';
+                setTimeout(() => input.style.borderColor = '', 300);
             }
-            alert('名字已保存！');
-        }
+        });
+
+        // 回车保存
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('saveNameBtn').click();
+            }
+        });
+
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    },
+
+    // 显示提示消息
+    showToast(message, duration = 2000) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: var(--gold-primary);
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            z-index: 9999;
+            animation: fadeInScale 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--gold-primary);
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'fadeOutScale 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
     },
 
     // 切换用户
@@ -175,12 +255,15 @@ const DisneyCruiseApp = {
                     ${day.activities.map((act, idx) => {
                         const actId = `day${day.day}_act${idx}`;
                         const isCompleted = progress[actId];
-                        const confirmedBadge = act.confirmed ? '<span style="color:#2ecc71;margin-right:4px;">✓</span>' : '';
-                        const highlightBadge = act.highlight ? '✨ ' : '';
+                        const confirmedBadge = act.confirmed ? '<span class="badge confirmed">✓</span>' : '';
+                        const highlightBadge = act.highlight ? '<span class="badge highlight">✨</span>' : '';
+                        const mustDoBadge = act.mustDo ? '<span class="badge mustdo">必须</span>' : '';
+                        const groupBadge = act.group ? `<span class="badge group">${act.group === 'chongqing' ? '重庆组' : '深圳组'}</span>` : '';
                         return `
-                            <div class="activity-item ${isCompleted ? 'completed' : ''} ${act.confirmed ? 'confirmed' : ''}" data-id="${actId}">
+                            <div class="activity-item ${isCompleted ? 'completed' : ''} ${act.confirmed ? 'confirmed' : ''} ${act.mustDo ? 'must-do' : ''}" data-id="${actId}">
+                                <div class="activity-badges">${mustDoBadge}${confirmedBadge}${highlightBadge}${groupBadge}</div>
                                 <div class="activity-time">${act.time}</div>
-                                <div class="activity-title">${confirmedBadge}${highlightBadge}${act.title}</div>
+                                <div class="activity-title">${act.title}</div>
                                 <div class="activity-desc">${act.desc}</div>
                                 <div class="activity-check ${isCompleted ? 'checked' : ''}" onclick="DisneyCruiseApp.toggleActivity('${actId}')"></div>
                             </div>
@@ -565,6 +648,110 @@ const DisneyCruiseApp = {
                 });
             }
         });
+    },
+
+    // 增强星空效果
+    initEnhancedStars() {
+        const container = document.getElementById('stars');
+        if (!container) return;
+
+        // 添加流动星星
+        for (let i = 0; i < 15; i++) {
+            const shootingStar = document.createElement('div');
+            shootingStar.className = 'shooting-star';
+            shootingStar.style.left = `${Math.random() * 100}%`;
+            shootingStar.style.top = `${Math.random() * 50}%`;
+            shootingStar.style.animationDelay = `${Math.random() * 10}s`;
+            shootingStar.style.animationDuration = `${2 + Math.random() * 3}s`;
+            container.appendChild(shootingStar);
+        }
+    },
+
+    // 行程导出功能
+    initExportFeature() {
+        // 在行程页面添加导出按钮
+        const itineraryPage = document.getElementById('itinerary');
+        if (!itineraryPage) return;
+
+        const exportBtn = document.createElement('button');
+        exportBtn.className = 'export-btn';
+        exportBtn.innerHTML = '📤 分享行程';
+        exportBtn.onclick = () => this.exportItinerary();
+
+        const pageHeader = itineraryPage.querySelector('.page-header');
+        if (pageHeader) {
+            pageHeader.appendChild(exportBtn);
+        }
+    },
+
+    exportItinerary() {
+        const user = Storage.getCurrentUser();
+        const exportText = this.generateItineraryText();
+
+        // 创建弹窗显示导出内容
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-height: 80vh;">
+                <div class="modal-header">
+                    <h3>📤 分享行程</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <textarea id="exportText" class="modal-input" readonly
+                        style="height: 200px; font-size: 13px; line-height: 1.6; resize: none;">${exportText}</textarea>
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-top: 8px;">
+                        复制上方内容分享给朋友
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="this.closest('.modal').remove()">关闭</button>
+                    <button class="btn-primary" onclick="DisneyCruiseApp.copyExportText()">📋 复制</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    },
+
+    generateItineraryText() {
+        let text = `🚢 迪士尼探险号邮轮之旅\n`;
+        text += `📅 ${cruiseData.cruiseInfo.duration} · ${cruiseData.cruiseInfo.departure} 出发\n`;
+        text += `👥 ${cruiseData.cruiseInfo.passengers}人 · ${cruiseData.cruiseInfo.roomType}\n`;
+        text += `═`.repeat(30) + `\n\n`;
+
+        cruiseData.itinerary.forEach(day => {
+            text += `【第${day.day}天】${day.date} ${day.weekday}\n`;
+            text += `${day.title} ${day.emoji}\n`;
+            text += `📍 ${day.location}\n\n`;
+
+            day.activities.forEach(act => {
+                const icon = act.mustDo ? '🔴' : act.confirmed ? '✅' : act.highlight ? '✨' : '📍';
+                text += `${icon} ${act.time} ${act.title}\n`;
+                if (act.desc) text += `   ${act.desc}\n`;
+            });
+
+            text += `\n`;
+        });
+
+        text += `═`.repeat(30) + `\n`;
+        text += `💰 预算：人均 ¥${Math.round(cruiseData.defaultBookings.reduce((sum, b) => sum + b.price, 0) / cruiseData.cruiseInfo.passengers).toLocaleString()}\n`;
+        text += `📱 更多详情打开旅行计划App查看`;
+
+        return text;
+    },
+
+    copyExportText() {
+        const textarea = document.getElementById('exportText');
+        if (textarea) {
+            textarea.select();
+            document.execCommand('copy');
+            this.showToast('📋 已复制到剪贴板！');
+        }
     }
 };
 

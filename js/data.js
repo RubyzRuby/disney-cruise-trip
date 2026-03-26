@@ -145,8 +145,9 @@ const cruiseData = {
                 { time: "14:30", title: "奥利凡德魔杖店", desc: "魔杖选择巫师体验", highlight: true },
                 { time: "15:30", title: "其他园区游玩", desc: "变形金刚、侏罗纪公园、木乃伊复仇记" },
                 { time: "18:00", title: "离开环球影城", desc: "结束魔法之旅" },
-                { time: "19:00", title: "圣淘沙时光之翼", desc: "可选：观看水幕灯光秀（19:40/20:40场次）", highlight: true },
-                { time: "21:00", title: "返回市区或机场", desc: "完美旅程结束！" }
+                { time: "18:30", title: "前往樟宜机场", desc: "打车约30分钟，建议提前2-3小时到达", mustDo: true, highlight: true },
+                { time: "20:05", title: "✈️ 返程航班（重庆）", desc: "2人：樟宜T3 → 江北机场，次日01:15抵达", mustDo: true, confirmed: true, highlight: true },
+                { time: "20:45", title: "✈️ 返程航班（深圳）", desc: "1人：樟宜T3 → 宝安机场，次日01:00抵达", mustDo: true, confirmed: true, highlight: true }
             ]
         }
     ],

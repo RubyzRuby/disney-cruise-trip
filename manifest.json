@@ -1,0 +1,17 @@
+{
+  "name": "迪士尼邮轮之旅",
+  "short_name": "迪士尼邮轮",
+  "description": "迪士尼探险号邮轮旅行计划 - 6月18日至22日",
+  "start_url": "/disney-cruise-trip/",
+  "display": "standalone",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='88' fill='%23ffd700'/%3E%3Ctext x='96' y='120' font-size='80' text-anchor='middle'%3E🚢%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
