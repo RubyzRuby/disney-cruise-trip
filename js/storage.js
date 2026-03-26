@@ -82,13 +82,43 @@ const Storage = {
         const data = localStorage.getItem(key);
 
         if (data) {
-            return JSON.parse(data);
+            const todos = JSON.parse(data);
+            // 转换旧数据格式：将布尔值转换为对象格式
+            this.migrateTodoFormat(todos);
+            return todos;
         }
 
         // 首次使用：复制默认数据并添加用户专属标记
         const userTodos = JSON.parse(JSON.stringify(cruiseData.defaultTodos));
         this.saveTodos(userTodos);
         return userTodos;
+    },
+
+    // 迁移旧数据格式（布尔值 -> 对象）
+    migrateTodoFormat(todos) {
+        const members = cruiseData?.members || [];
+        Object.keys(todos).forEach(category => {
+            if (Array.isArray(todos[category])) {
+                todos[category].forEach(todo => {
+                    // 如果 completed 是布尔值，转换为对象格式
+                    if (typeof todo.completed === 'boolean') {
+                        const oldValue = todo.completed;
+                        todo.completed = {};
+                        members.forEach(m => {
+                            todo.completed[m.id] = oldValue;
+                        });
+                    }
+                    // 确保所有成员都有状态
+                    if (typeof todo.completed === 'object' && todo.completed !== null) {
+                        members.forEach(m => {
+                            if (!(m.id in todo.completed)) {
+                                todo.completed[m.id] = false;
+                            }
+                        });
+                    }
+                });
+            }
+        });
     },
 
     // 获取所有用户的待办确认状态（用于显示）
@@ -101,10 +131,13 @@ const Storage = {
             const key = this.keys.TODOS_PREFIX + member.id;
             const data = localStorage.getItem(key);
             if (data) {
-                result[member.id] = JSON.parse(data);
+                const todos = JSON.parse(data);
+                this.migrateTodoFormat(todos);
+                result[member.id] = todos;
             } else {
                 // 使用默认数据
-                result[member.id] = JSON.parse(JSON.stringify(cruiseData.defaultTodos));
+                const defaultTodos = JSON.parse(JSON.stringify(cruiseData.defaultTodos));
+                result[member.id] = defaultTodos;
             }
         });
 
@@ -119,14 +152,21 @@ const Storage = {
         const todos = this.getTodos();
         const todo = todos[category]?.find(t => t.id === todoId);
 
-        if (todo && todo.completed) {
-            // 切换当前用户的状态
-            todo.completed[user.id] = !todo.completed[user.id];
-            this.saveTodos(todos);
-            return true;
+        if (!todo) return false;
+
+        // 确保 completed 是对象格式
+        if (typeof todo.completed !== 'object' || todo.completed === null) {
+            const oldValue = todo.completed === true;
+            todo.completed = {};
+            cruiseData.members.forEach(m => {
+                todo.completed[m.id] = oldValue;
+            });
         }
 
-        return false;
+        // 切换当前用户的状态
+        todo.completed[user.id] = !todo.completed[user.id];
+        this.saveTodos(todos);
+        return true;
     },
 
     // 检查待办是否全部完成（三人）
